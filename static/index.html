@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KidCoder – Nauka Programowania!</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- EKRAN LOGOWANIA -->
+<div id="screen-login" class="screen active">
+  <div class="login-card">
+    <div class="logo-area">
+      <svg viewBox="0 0 120 120" width="100" height="100">
+        <circle cx="60" cy="60" r="55" fill="#6C5CE7"/>
+        <text x="60" y="48" text-anchor="middle" fill="#FFF" font-size="28" font-weight="800" font-family="Nunito">{ }</text>
+        <text x="60" y="78" text-anchor="middle" fill="#FFEAA7" font-size="16" font-weight="700" font-family="Nunito">KID</text>
+        <text x="60" y="96" text-anchor="middle" fill="#FFF" font-size="12" font-weight="600" font-family="Nunito">CODER</text>
+      </svg>
+    </div>
+    <h1>Witaj, młody koderze! 🚀</h1>
+    <p class="subtitle">Wpisz swoje imię, żeby rozpocząć przygodę</p>
+    <div class="input-group">
+      <input type="text" id="username-input" placeholder="Twoje imię..." maxlength="20" autocomplete="off">
+      <button id="btn-start" class="btn btn-primary btn-lg">Zaczynamy!</button>
+    </div>
+  </div>
+  <div class="floating-shapes">
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+    <div class="shape shape-3"></div>
+    <div class="shape shape-4"></div>
+  </div>
+</div>
+
+<!-- EKRAN WYBORU -->
+<div id="screen-levels" class="screen">
+  <header class="top-bar">
+    <div class="top-bar-left">
+      <svg viewBox="0 0 40 40" width="32" height="32" class="mini-logo">
+        <circle cx="20" cy="20" r="18" fill="#6C5CE7"/>
+        <text x="20" y="24" text-anchor="middle" fill="#FFF" font-size="12" font-weight="800" font-family="Nunito">{ }</text>
+      </svg>
+      <span class="brand">KidCoder</span>
+    </div>
+    <div class="top-bar-right">
+      <span id="user-display" class="user-badge">👤 Gracz</span>
+      <span id="total-stars" class="star-badge">⭐ 0</span>
+      <button id="btn-logout" class="btn btn-small btn-logout" title="Wyloguj">🚪 Wyloguj</button>
+    </div>
+  </header>
+  <div class="tabs-bar">
+    <button class="tab-btn active" data-tab="coding">🧩 Kodowanie</button>
+    <button class="tab-btn" data-tab="typing">⌨️ Pisanie</button>
+    <button class="tab-btn" data-tab="logic">🧠 Logika</button>
+    <button class="tab-btn" data-tab="memory">🃏 Memory</button>
+    <button class="tab-btn" data-tab="adventure">🗺️ Przygoda</button>
+    <button class="tab-btn" data-tab="thinking">🤖 Myślenie</button>
+    <button class="tab-btn" data-tab="diploma">🎓 Dyplom</button>
+  </div>
+  <div id="tab-coding" class="tab-content active">
+    <div class="levels-container">
+      <h2 class="section-title">Wybierz poziom</h2>
+      <div id="levels-grid" class="levels-grid"></div>
+    </div>
+  </div>
+  <div id="tab-typing" class="tab-content">
+    <div class="levels-container">
+      <h2 class="section-title">Lekcje pisania na klawiaturze</h2>
+      <div id="typing-grid" class="levels-grid"></div>
+      <h2 class="section-title" style="margin-top:2rem">✏️ Krzyżówki</h2>
+      <div id="crossword-grid" class="levels-grid"></div>
+    </div>
+  </div>
+  <div id="tab-logic" class="tab-content">
+    <div class="levels-container">
+      <h2 class="section-title">🧠 Zagadki logiczne</h2>
+      <div id="logic-grid" class="levels-grid"></div>
+    </div>
+  </div>
+  <div id="tab-quiz" class="tab-content" style="display:none">
+    <div class="levels-container">
+      <h2 class="section-title">💡 Quiz programistyczny</h2>
+      <div id="quiz-grid" class="levels-grid"></div>
+    </div>
+  </div>
+  <div id="tab-memory" class="tab-content">
+    <div class="levels-container memory-tab-container">
+      <div class="tab-hero memory-hero">
+        <div class="tab-hero-icon">🃏</div>
+        <h2 class="tab-hero-title">Memory – dopasuj pary!</h2>
+        <p class="tab-hero-desc">Odkrywaj karty i łącz emoji z pojęciami programistycznymi</p>
+      </div>
+      <div id="memory-grid" class="levels-grid memory-levels-grid"></div>
+    </div>
+  </div>
+  <div id="tab-adventure" class="tab-content">
+    <div class="levels-container adventure-tab-container">
+      <div class="tab-hero adventure-hero">
+        <div class="tab-hero-icon">🗺️</div>
+        <h2 class="tab-hero-title">Przygoda – odkryj świat kodu!</h2>
+        <p class="tab-hero-desc">Eksploruj lochy, zbieraj klejnoty i unikaj potworów! 🎮</p>
+      </div>
+      <div id="adventure-grid" class="levels-grid adventure-levels-grid"></div>
+    </div>
+  </div>
+  <div id="tab-thinking" class="tab-content">
+    <div class="levels-container thinking-tab-container">
+      <div class="tab-hero thinking-hero">
+        <div class="tab-hero-icon">🤖</div>
+        <h2 class="tab-hero-title">Myślenie komputerowe</h2>
+        <p class="tab-hero-desc">Naucz się myśleć jak programista! Sekwencje, wzorce, warunki i więcej 🧩</p>
+      </div>
+      <div id="thinking-grid" class="levels-grid thinking-levels-grid"></div>
+    </div>
+  </div>
+  <div id="tab-diploma" class="tab-content">
+    <div class="levels-container">
+      <div id="diploma-container" class="diploma-container"></div>
+    </div>
+  </div>
+</div>
+
+<!-- EKRAN GRY KODOWANIA -->
+<div id="screen-game" class="screen">
+  <header class="top-bar coding-top-bar">
+    <button id="btn-back" class="btn btn-back" title="Wróć">🔙 Wróć</button>
+    <div class="level-info">
+      <span id="level-title" class="level-title-bar">Poziom 1</span>
+    </div>
+    <div class="top-bar-right">
+      <button id="btn-hint" class="btn btn-action">💡 Podpowiedź</button>
+      <button id="btn-reset" class="btn btn-action">🔄 Reset</button>
+    </div>
+  </header>
+  <div class="game-layout">
+    <div class="game-col-left">
+      <div class="panel panel-toolbox">
+        <h3 class="panel-title">🧩 Bloki</h3>
+        <p id="level-description" class="level-desc"></p>
+        <div id="toolbox" class="toolbox"></div>
+      </div>
+      <div class="panel panel-program">
+        <h3 class="panel-title">📋 Mój program</h3>
+        <div id="program-area" class="program-area">
+          <div class="drop-placeholder">Przeciągnij bloki tutaj!</div>
+        </div>
+        <div class="program-controls">
+          <button id="btn-run" class="btn btn-primary btn-run">▶ Uruchom</button>
+          <button id="btn-step" class="btn btn-secondary btn-step">⏭ Krok</button>
+          <button id="btn-clear" class="btn btn-secondary btn-clear">🗑 Wyczyść</button>
+        </div>
+      </div>
+    </div>
+    <div class="panel panel-game">
+      <h3 class="panel-title">🎮 Gra</h3>
+      <div id="game-container" class="game-container">
+        <svg id="game-svg" viewBox="0 0 500 500" class="game-svg"></svg>
+      </div>
+      <div id="game-message" class="game-message"></div>
+    </div>
+  </div>
+</div>
+
+<!-- EKRAN PISANIA -->
+<div id="screen-typing" class="screen">
+  <header class="top-bar typing-top-bar">
+    <button id="btn-back-typing" class="btn btn-back" title="Wróć">🔙 Wróć</button>
+    <div class="level-info">
+      <span id="typing-title" class="level-title-bar">Lekcja 1</span>
+    </div>
+    <div class="top-bar-right">
+      <span id="typing-timer" class="top-badge">⏱ 60s</span>
+      <span id="typing-wpm" class="top-badge">🚀 0 WPM</span>
+    </div>
+  </header>
+  <div class="typing-layout">
+    <div class="typing-main">
+      <p id="typing-desc" class="typing-desc"></p>
+      <div id="typing-display" class="typing-display">
+        <span id="typing-done" class="typing-done"></span><span id="typing-current" class="typing-current"></span><span id="typing-remaining" class="typing-remaining"></span>
+      </div>
+      <input type="text" id="typing-input" class="typing-input" placeholder="Zacznij pisać..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+      <div class="typing-stats">
+        <div class="stat-box stat-accuracy"><div class="stat-value" id="stat-accuracy">100%</div><div class="stat-label">Dokładność</div></div>
+        <div class="stat-box stat-speed"><div class="stat-value" id="stat-speed">0</div><div class="stat-label">WPM</div></div>
+        <div class="stat-box stat-correct"><div class="stat-value" id="stat-correct">0</div><div class="stat-label">Poprawne</div></div>
+        <div class="stat-box stat-errors"><div class="stat-value" id="stat-errors">0</div><div class="stat-label">Błędy</div></div>
+      </div>
+      <div id="keyboard-visual" class="keyboard-visual"></div>
+      <div class="typing-controls">
+        <button id="btn-typing-restart" class="btn btn-secondary">🔄 Od nowa</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EKRAN GRY LOGICZNEJ -->
+<div id="screen-logic" class="screen">
+  <header class="top-bar logic-top-bar">
+    <button id="btn-back-logic" class="btn btn-back" title="Wróć">🔙 Wróć</button>
+    <div class="level-info">
+      <span id="logic-title" class="level-title-bar">Zagadka 1</span>
+    </div>
+    <div class="top-bar-right">
+      <button id="btn-logic-hint" class="btn btn-action">💡 Podpowiedź</button>
+    </div>
+  </header>
+  <div class="logic-layout logic-game-bg">
+    <div class="logic-main">
+      <p id="logic-desc" class="logic-desc"></p>
+      <div id="logic-puzzle-area" class="logic-puzzle-area"></div>
+      <div id="logic-options" class="logic-options"></div>
+      <div id="logic-feedback" class="logic-feedback"></div>
+    </div>
+  </div>
+</div>
+
+<!-- EKRAN QUIZU (hidden, used internally by adventure) -->
+<div id="screen-quiz" class="screen">
+  <header class="top-bar quiz-top-bar">
+    <button id="btn-back-quiz" class="btn btn-back" title="Wróć">🔙 Wróć</button>
+    <div class="level-info">
+      <span id="quiz-title" class="level-title-bar">Quiz 1</span>
+    </div>
+    <div class="top-bar-right">
+      <button id="btn-quiz-hint" class="btn btn-action">💡 Podpowiedź</button>
+    </div>
+  </header>
+  <div class="logic-layout quiz-game-bg">
+    <div class="logic-main">
+      <p id="quiz-desc" class="logic-desc"></p>
+      <pre id="quiz-code" class="quiz-code-block" style="display:none"></pre>
+      <div id="quiz-content" class="logic-puzzle-area"></div>
+      <div id="quiz-options" class="logic-options"></div>
+      <div id="quiz-feedback" class="logic-feedback"></div>
+    </div>
+  </div>
+</div>
+
+<!-- EKRAN GRY MEMORY -->
+<div id="screen-memory" class="screen">
+  <header class="top-bar memory-top-bar">
+    <button id="btn-back-memory" class="btn btn-back" title="Wróć">🔙 Wróć</button>
+    <div class="level-info">
+      <span id="memory-title" class="level-title-bar">Memory 1</span>
+    </div>
+    <div class="top-bar-right">
+      <span id="memory-timer" class="top-badge">⏱ 60s</span>
+      <span id="memory-moves" class="top-badge">🎯 0 ruchów</span>
+    </div>
+  </header>
+  <div class="logic-layout memory-game-bg">
+    <div class="logic-main">
+      <div id="memory-board" class="memory-board"></div>
+      <div class="memory-controls">
+        <button id="btn-memory-restart" class="btn btn-secondary">🔄 Od nowa</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EKRAN PRZYGODY (REDESIGNED) -->
+<div id="screen-adventure" class="screen">
+  <header class="top-bar adventure-top-bar">
+    <button id="btn-back-adventure" class="btn btn-back" title="Wróć">🔙 Wróć</button>
+    <div class="level-info">
+      <span id="adventure-title" class="level-title-bar">Przygoda</span>
+    </div>
+  </header>
+  <div class="logic-layout adventure-game-bg">
+    <div id="adventure-game-area" class="logic-main adventure-game-area" style="display:none"></div>
+  </div>
+</div>
+
+<!-- EKRAN KRZYŻÓWKI -->
+<div id="screen-crossword" class="screen">
+  <header class="top-bar crossword-top-bar">
+    <button id="btn-back-crossword" class="btn btn-back" title="Wróć">🔙 Wróć</button>
+    <div class="level-info">
+      <span id="crossword-title" class="level-title-bar">Krzyżówka</span>
+    </div>
+    <div class="top-bar-right">
+      <button id="btn-crossword-check" class="btn btn-action">✅ Sprawdź</button>
+    </div>
+  </header>
+  <div class="logic-layout crossword-game-bg">
+    <div class="logic-main">
+      <p id="crossword-desc" class="crossword-desc"></p>
+      <div class="logic-puzzle-area">
+        <div id="crossword-clues" class="crossword-clues"></div>
+        <div id="crossword-board" class="crossword-board"></div>
+      </div>
+      <div id="crossword-feedback" class="crossword-feedback"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL SUKCESU KRZYŻÓWKI -->
+<div id="modal-crossword-success" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-stars" id="crossword-modal-stars"></div>
+    <h2>✏️ Brawo!</h2>
+    <p id="crossword-modal-message">Rozwiązałeś krzyżówkę!</p>
+    <div class="modal-buttons">
+      <button id="btn-next-crossword" class="btn btn-primary">Następna krzyżówka ➡</button>
+      <button id="btn-crossword-to-list" class="btn btn-secondary">📋 Lista</button>
+    </div>
+  </div>
+</div>
+
+<!-- EKRAN MYŚLENIA KOMPUTEROWEGO -->
+<div id="screen-thinking" class="screen">
+  <header class="top-bar thinking-top-bar">
+    <button id="btn-back-thinking" class="btn btn-back" title="Wróć">🔙 Wróć</button>
+    <div class="level-info">
+      <span id="thinking-title" class="level-title-bar">Myślenie</span>
+    </div>
+    <div class="top-bar-right">
+      <button id="btn-thinking-hint" class="btn btn-action">💡 Podpowiedź</button>
+    </div>
+  </header>
+  <div class="logic-layout thinking-game-bg">
+    <div class="logic-main">
+      <div id="thinking-puzzle-area" class="logic-puzzle-area"></div>
+      <div id="thinking-options" class="logic-options"></div>
+      <div id="thinking-feedback" class="logic-feedback"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL SUKCESU MYŚLENIA -->
+<div id="modal-thinking-success" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-stars" id="thinking-modal-stars"></div>
+    <h2>🤖 Brawo!</h2>
+    <p id="thinking-modal-message">Myślisz jak programista!</p>
+    <p id="thinking-explanation" class="logic-explanation"></p>
+    <div class="modal-buttons">
+      <button id="btn-next-thinking" class="btn btn-primary">Następne ćwiczenie ➡</button>
+      <button id="btn-thinking-to-list" class="btn btn-secondary">📋 Lista ćwiczeń</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL SUKCESU LOGIKI -->
+<div id="modal-logic-success" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-stars" id="logic-modal-stars"></div>
+    <h2>🧠 Brawo!</h2>
+    <p id="logic-modal-message">Rozwiązałeś zagadkę!</p>
+    <p id="logic-explanation" class="logic-explanation"></p>
+    <div class="modal-buttons">
+      <button id="btn-next-logic" class="btn btn-primary">Następna zagadka ➡</button>
+      <button id="btn-logic-to-list" class="btn btn-secondary">📋 Lista zagadek</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL SUKCESU QUIZU -->
+<div id="modal-quiz-success" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-stars" id="quiz-modal-stars"></div>
+    <h2>💡 Brawo!</h2>
+    <p id="quiz-modal-message">Poprawna odpowiedź!</p>
+    <p id="quiz-explanation" class="logic-explanation"></p>
+    <div class="modal-buttons">
+      <button id="btn-next-quiz" class="btn btn-primary">Następny quiz ➡</button>
+      <button id="btn-quiz-to-list" class="btn btn-secondary">📋 Lista quizów</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL WYNIKU MEMORY -->
+<div id="modal-memory-result" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-stars" id="memory-result-stars"></div>
+    <h2 id="memory-result-title">🎉 Brawo!</h2>
+    <p id="memory-result-message"></p>
+    <div class="typing-result-stats">
+      <div class="stat-box"><div class="stat-value" id="memory-result-moves">0</div><div class="stat-label">Ruchy</div></div>
+      <div class="stat-box"><div class="stat-value" id="memory-result-pairs">0</div><div class="stat-label">Pary</div></div>
+    </div>
+    <div class="modal-buttons">
+      <button id="btn-memory-next" class="btn btn-primary">Następna gra ➡</button>
+      <button id="btn-memory-retry" class="btn btn-secondary">🔄 Jeszcze raz</button>
+      <button id="btn-memory-to-list" class="btn btn-secondary">📋 Lista gier</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL UKOŃCZENIA PRZYGODY -->
+<div id="modal-adventure-complete" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-stars" id="adventure-complete-stars"></div>
+    <h2>🎮 Świetnie!</h2>
+    <p id="adventure-complete-msg">Ukończyłeś przystanek!</p>
+    <div class="modal-buttons">
+      <button id="btn-adventure-next" class="btn btn-primary">Dalej ➡</button>
+      <button id="btn-adventure-to-map" class="btn btn-secondary">🗺️ Mapa</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL SUKCESU -->
+<div id="modal-success" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-stars" id="modal-stars"></div>
+    <h2>🎉 Świetnie!</h2>
+    <p id="modal-message">Ukończyłeś poziom!</p>
+    <div class="modal-buttons">
+      <button id="btn-next-level" class="btn btn-primary">Następny poziom ➡</button>
+      <button id="btn-replay" class="btn btn-secondary">🔄 Spróbuj ponownie</button>
+      <button id="btn-to-levels" class="btn btn-secondary">📋 Poziomy</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PODPOWIEDZI -->
+<div id="modal-hint" class="modal-overlay">
+  <div class="modal-card modal-hint-card">
+    <h2>💡 Podpowiedź</h2>
+    <p id="hint-text"></p>
+    <button id="btn-close-hint" class="btn btn-primary">Rozumiem!</button>
+  </div>
+</div>
+
+<!-- EKRAN GRY SAMOCHODOWEJ -->
+<div id="screen-car" class="screen">
+  <header class="top-bar car-top-bar">
+    <button id="btn-back-car" class="btn btn-back" title="Wróć">🔙 Wróć</button>
+    <div class="level-info">
+      <span id="car-title" class="level-title-bar">Wyścig literek</span>
+    </div>
+    <div class="top-bar-right">
+      <span id="car-score" class="top-badge">🏆 0</span>
+      <span id="car-lives" class="top-badge">❤️ 3</span>
+    </div>
+  </header>
+  <div class="car-game-layout">
+    <svg id="car-svg" viewBox="0 0 500 600" class="car-svg"></svg>
+    <div id="car-message" class="game-message"></div>
+  </div>
+</div>
+
+<!-- MODAL WYNIK WYŚCIGU -->
+<div id="modal-car-result" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-stars" id="car-result-stars"></div>
+    <h2 id="car-result-title">🏎️ Koniec wyścigu!</h2>
+    <p id="car-result-message"></p>
+    <div class="typing-result-stats">
+      <div class="stat-box"><div class="stat-value" id="car-result-score">0</div><div class="stat-label">Punkty</div></div>
+      <div class="stat-box"><div class="stat-value" id="car-result-accuracy">0%</div><div class="stat-label">Dokładność</div></div>
+    </div>
+    <div class="modal-buttons">
+      <button id="btn-car-retry" class="btn btn-secondary">🔄 Jeszcze raz</button>
+      <button id="btn-car-to-list" class="btn btn-secondary">📋 Lista lekcji</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL WYNIKÓW PISANIA -->
+<div id="modal-typing-result" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-stars" id="typing-result-stars"></div>
+    <h2 id="typing-result-title">🎉 Brawo!</h2>
+    <p id="typing-result-message"></p>
+    <div class="typing-result-stats">
+      <div class="stat-box"><div class="stat-value" id="result-wpm">0</div><div class="stat-label">WPM</div></div>
+      <div class="stat-box"><div class="stat-value" id="result-accuracy">0%</div><div class="stat-label">Dokładność</div></div>
+    </div>
+    <div class="modal-buttons">
+      <button id="btn-typing-next" class="btn btn-primary">Następna lekcja ➡</button>
+      <button id="btn-typing-retry" class="btn btn-secondary">🔄 Powtórz</button>
+      <button id="btn-typing-to-list" class="btn btn-secondary">📋 Lista lekcji</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/core.js"></script>
+<script src="js/coding.js"></script>
+<script src="js/typing.js"></script>
+<script src="js/car.js"></script>
+<script src="js/logic.js"></script>
+<script src="js/quiz.js"></script>
+<script src="js/memory.js"></script>
+<script src="js/adventure.js"></script>
+<script src="js/thinking.js"></script>
+<script src="js/crossword.js"></script>
+<script src="js/diploma.js"></script>
+</body>
+</html>

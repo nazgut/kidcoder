@@ -1,0 +1,1931 @@
+/* ==========================================================
+   KidCoder – Main Application JS
+   Blokowe kodowanie + nauka pisania dla dzieci (SVG)
+   ========================================================== */
+
+const API = "";  // same origin
+
+// ============ STATE ============
+const state = {
+  username: "",
+  progress: { completed: [], stars: {}, current_level: 1,
+              typing_completed: [], typing_stars: {}, typing_best_wpm: {} },
+  levels: [],
+  typingLessons: [],
+  currentLevel: null,
+  currentTyping: null,
+  program: [],
+  executing: false,
+  heroX: 0,
+  heroY: 0,
+  heroDir: "right",
+  collectedGems: [],
+  hintIndex: 0,
+  stepIndex: 0,
+  animTimer: null,
+  // typing state
+  typingText: "",
+  typingPos: 0,
+  typingCorrect: 0,
+  typingErrors: 0,
+  typingStarted: false,
+  typingFinished: false,
+  typingStartTime: null,
+  typingTimerInterval: null,
+  typingTimeLeft: 0,
+  // car game state
+  carActive: false,
+  carScore: 0,
+  carLives: 3,
+  carCorrect: 0,
+  carTotal: 0,
+  carLetters: [],       // {char, x, y, speed}
+  carAnimFrame: null,
+  carLessonId: null,
+  carChars: "",
+  // logic state
+  logicPuzzles: [],
+  currentLogic: null,
+  logicHintIndex: 0,
+  logicAttempts: 0,
+  logicSolved: false,
+};
+
+const DIR_DELTAS = {
+  right: [1, 0],
+  down:  [0, 1],
+  left:  [-1, 0],
+  up:    [0, -1],
+};
+const DIR_ORDER = ["right", "down", "left", "up"];
+
+// ============ BLOCK DEFINITIONS ============
+const BLOCK_DEFS = {
+  forward:        { label: "Do przodu",        icon: "arrow",     category: "action" },
+  turn_right:     { label: "Skręt w prawo",    icon: "turn-r",    category: "action" },
+  turn_left:      { label: "Skręt w lewo",     icon: "turn-l",    category: "action" },
+  collect:        { label: "Zbierz",           icon: "gem",       category: "action" },
+  repeat_3:       { label: "Powtórz ×3",       icon: "loop",      category: "control", container: true, repeat: 3 },
+  repeat_5:       { label: "Powtórz ×5",       icon: "loop",      category: "control", container: true, repeat: 5 },
+  if_wall:        { label: "Sprytny ruch",     icon: "question",  category: "control", container: false },
+  if_path_clear:  { label: "Jeśli droga wolna", icon: "if-yes",   category: "condition", container: true, condition: "path_clear" },
+  if_wall_ahead:  { label: "Jeśli ściana",     icon: "if-no",     category: "condition", container: true, condition: "wall_ahead" },
+  define_func:    { label: "Zdefiniuj funkcję", icon: "func",     category: "function", container: true },
+  call_func:      { label: "Wywołaj funkcję",  icon: "play",      category: "function" },
+};
+
+// ============ SVG BLOCK ICONS ============
+function blockIconSVG(type) {
+  const svgs = {
+    arrow: `<svg viewBox="0 0 26 26"><path d="M4 13h14M13 7l6 6-6 6" stroke="#FFF" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    "turn-r": `<svg viewBox="0 0 26 26"><path d="M6 18V10a4 4 0 0 1 4-4h6" stroke="#333" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M14 3l4 3-4 3" stroke="#333" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    "turn-l": `<svg viewBox="0 0 26 26"><path d="M20 18V10a4 4 0 0 0-4-4H10" stroke="#FFF" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M12 3L8 6l4 3" stroke="#FFF" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    gem: `<svg viewBox="0 0 26 26"><polygon points="13,3 23,10 13,23 3,10" fill="#55EFC4" stroke="#FFF" stroke-width="1.5"/><line x1="3" y1="10" x2="23" y2="10" stroke="#FFF" stroke-width="1.5"/><line x1="13" y1="3" x2="10" y2="10" stroke="#FFF" stroke-width="1"/><line x1="13" y1="3" x2="16" y2="10" stroke="#FFF" stroke-width="1"/><line x1="10" y1="10" x2="13" y2="23" stroke="#FFF" stroke-width="1"/><line x1="16" y1="10" x2="13" y2="23" stroke="#FFF" stroke-width="1"/></svg>`,
+    loop: `<svg viewBox="0 0 26 26"><path d="M18 8a6 6 0 1 1-8 0" stroke="#FFF" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M12 4l-3 4 4 2" stroke="#FFF" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    question: `<svg viewBox="0 0 26 26"><circle cx="13" cy="13" r="10" fill="none" stroke="#FFF" stroke-width="2"/><text x="13" y="18" text-anchor="middle" fill="#FFF" font-size="14" font-weight="800">?</text></svg>`,
+    "if-yes": `<svg viewBox="0 0 26 26"><path d="M13 2L24 13 13 24 2 13Z" fill="none" stroke="#FFF" stroke-width="2"/><path d="M8 13l3 3 6-6" stroke="#FFF" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    "if-no": `<svg viewBox="0 0 26 26"><path d="M13 2L24 13 13 24 2 13Z" fill="none" stroke="#FFF" stroke-width="2"/><path d="M9 9l8 8M17 9l-8 8" stroke="#FFF" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>`,
+    func: `<svg viewBox="0 0 26 26"><rect x="3" y="5" width="20" height="16" rx="3" fill="none" stroke="#FFF" stroke-width="2"/><text x="13" y="17" text-anchor="middle" fill="#FFF" font-size="11" font-weight="800">fn</text></svg>`,
+    play: `<svg viewBox="0 0 26 26"><polygon points="8,4 22,13 8,22" fill="#FFF"/></svg>`,
+  };
+  return svgs[type] || svgs.arrow;
+}
+
+// ============ DOM REFS ============
+const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => document.querySelectorAll(sel);
+
+const dom = {};
+document.addEventListener("DOMContentLoaded", () => {
+  dom.loginScreen   = $("#screen-login");
+  dom.levelsScreen  = $("#screen-levels");
+  dom.gameScreen    = $("#screen-game");
+  dom.usernameInput = $("#username-input");
+  dom.btnStart      = $("#btn-start");
+  dom.userDisplay   = $("#user-display");
+  dom.totalStars    = $("#total-stars");
+  dom.levelsGrid    = $("#levels-grid");
+  dom.levelTitle    = $("#level-title");
+  dom.levelDesc     = $("#level-description");
+  dom.toolbox       = $("#toolbox");
+  dom.programArea   = $("#program-area");
+  dom.gameSvg       = $("#game-svg");
+  dom.gameMessage   = $("#game-message");
+  dom.btnRun        = $("#btn-run");
+  dom.btnStep       = $("#btn-step");
+  dom.btnClear      = $("#btn-clear");
+  dom.btnBack       = $("#btn-back");
+  dom.btnReset      = $("#btn-reset");
+  dom.btnHint       = $("#btn-hint");
+  dom.modalSuccess  = $("#modal-success");
+  dom.modalStars    = $("#modal-stars");
+  dom.modalMessage  = $("#modal-message");
+  dom.btnNextLevel  = $("#btn-next-level");
+  dom.btnReplay     = $("#btn-replay");
+  dom.btnToLevels   = $("#btn-to-levels");
+  dom.modalHint     = $("#modal-hint");
+  dom.hintText      = $("#hint-text");
+  dom.btnCloseHint  = $("#btn-close-hint");
+
+  // Typing DOM refs
+  dom.btnBackTyping    = $("#btn-back-typing");
+  dom.typingTitle      = $("#typing-title");
+  dom.typingTimer      = $("#typing-timer");
+  dom.typingWpm        = $("#typing-wpm");
+  dom.typingDesc       = $("#typing-desc");
+  dom.typingDisplay    = $("#typing-display");
+  dom.typingDone       = $("#typing-done");
+  dom.typingCurrent    = $("#typing-current");
+  dom.typingRemaining  = $("#typing-remaining");
+  dom.typingInput      = $("#typing-input");
+  dom.statAccuracy     = $("#stat-accuracy");
+  dom.statSpeed        = $("#stat-speed");
+  dom.statCorrect      = $("#stat-correct");
+  dom.statErrors       = $("#stat-errors");
+  dom.keyboardVisual   = $("#keyboard-visual");
+  dom.btnTypingRestart = $("#btn-typing-restart");
+  dom.modalTypingResult  = $("#modal-typing-result");
+  dom.typingResultStars  = $("#typing-result-stars");
+  dom.typingResultTitle  = $("#typing-result-title");
+  dom.typingResultMessage = $("#typing-result-message");
+  dom.resultWpm        = $("#result-wpm");
+  dom.resultAccuracy   = $("#result-accuracy");
+  dom.btnTypingNext    = $("#btn-typing-next");
+  dom.btnTypingRetry   = $("#btn-typing-retry");
+  dom.btnTypingToList  = $("#btn-typing-to-list");
+  dom.typingGrid       = $("#typing-grid");
+  dom.tabBtns          = $$(".tab-btn");
+
+  // Car game DOM refs
+  dom.btnBackCar       = $("#btn-back-car");
+  dom.carTitle         = $("#car-title");
+  dom.carScore         = $("#car-score");
+  dom.carLives         = $("#car-lives");
+  dom.carSvg           = $("#car-svg");
+  dom.carMessage       = $("#car-message");
+  dom.modalCarResult   = $("#modal-car-result");
+  dom.carResultStars   = $("#car-result-stars");
+  dom.carResultTitle   = $("#car-result-title");
+  dom.carResultMessage = $("#car-result-message");
+  dom.carResultScore   = $("#car-result-score");
+  dom.carResultAccuracy = $("#car-result-accuracy");
+  dom.btnCarRetry      = $("#btn-car-retry");
+  dom.btnCarToList     = $("#btn-car-to-list");
+
+  // Logic game DOM refs
+  dom.logicGrid        = $("#logic-grid");
+  dom.btnBackLogic     = $("#btn-back-logic");
+  dom.logicTitle       = $("#logic-title");
+  dom.logicDesc        = $("#logic-desc");
+  dom.logicPuzzleArea  = $("#logic-puzzle-area");
+  dom.logicOptions     = $("#logic-options");
+  dom.logicFeedback    = $("#logic-feedback");
+  dom.btnLogicHint     = $("#btn-logic-hint");
+  dom.modalLogicSuccess  = $("#modal-logic-success");
+  dom.logicModalStars    = $("#logic-modal-stars");
+  dom.logicModalMessage  = $("#logic-modal-message");
+  dom.logicExplanation   = $("#logic-explanation");
+  dom.btnNextLogic       = $("#btn-next-logic");
+  dom.btnLogicToList     = $("#btn-logic-to-list");
+
+  // Diploma & Logout
+  dom.diplomaContainer = $("#diploma-container");
+  dom.btnLogout        = $("#btn-logout");
+
+  initEvents();
+  showScreen("login");
+});
+
+// ============ NAVIGATION ============
+function showScreen(name) {
+  $$(".screen").forEach(s => s.classList.remove("active"));
+  $(`#screen-${name}`).classList.add("active");
+}
+
+// ============ EVENTS ============
+function initEvents() {
+  dom.btnStart.addEventListener("click", onLogin);
+  dom.usernameInput.addEventListener("keydown", e => { if (e.key === "Enter") onLogin(); });
+  dom.btnBack.addEventListener("click", () => { stopExecution(); showScreen("levels"); renderLevels(); });
+  dom.btnRun.addEventListener("click", onRun);
+  dom.btnStep.addEventListener("click", onStep);
+  dom.btnClear.addEventListener("click", onClear);
+  dom.btnReset.addEventListener("click", onResetLevel);
+  dom.btnHint.addEventListener("click", onHint);
+  dom.btnNextLevel.addEventListener("click", onNextLevel);
+  dom.btnReplay.addEventListener("click", () => { hideModal("success"); onResetLevel(); });
+  dom.btnToLevels.addEventListener("click", () => { hideModal("success"); showScreen("levels"); renderLevels(); });
+  dom.btnCloseHint.addEventListener("click", () => hideModal("hint"));
+
+  // Tab switching
+  dom.tabBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      dom.tabBtns.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      $$(".tab-content").forEach(tc => tc.classList.remove("active"));
+      $(`#tab-${btn.dataset.tab}`).classList.add("active");
+    });
+  });
+
+  // Typing events
+  dom.btnBackTyping.addEventListener("click", () => { stopTyping(); showScreen("levels"); renderLevels(); });
+  dom.btnTypingRestart.addEventListener("click", () => { resetTyping(); });
+  dom.typingInput.addEventListener("input", onTypingInput);
+  dom.btnTypingNext.addEventListener("click", onNextTypingLesson);
+  dom.btnTypingRetry.addEventListener("click", () => { hideModal("typing-result"); resetTyping(); });
+  dom.btnTypingToList.addEventListener("click", () => { hideModal("typing-result"); showScreen("levels"); renderLevels(); });
+
+  // Car game events
+  dom.btnBackCar.addEventListener("click", () => { stopCarGame(); showScreen("levels"); renderLevels(); renderTypingLessons(); });
+  dom.btnCarRetry.addEventListener("click", () => { hideModal("car-result"); startCarGame(state.carLessonId, state.carChars); });
+  dom.btnCarToList.addEventListener("click", () => { hideModal("car-result"); showScreen("levels"); renderLevels(); renderTypingLessons(); });
+  document.addEventListener("keydown", onCarKeyDown);
+
+  // Logic game events
+  dom.btnBackLogic.addEventListener("click", () => { showScreen("levels"); renderLogicPuzzles(); });
+  dom.btnLogicHint.addEventListener("click", onLogicHint);
+  dom.btnNextLogic.addEventListener("click", onNextLogic);
+  dom.btnLogicToList.addEventListener("click", () => { hideModal("logic-success"); showScreen("levels"); renderLogicPuzzles(); });
+
+  // Logout
+  dom.btnLogout.addEventListener("click", onLogout);
+
+  // Program area drag-and-drop
+  dom.programArea.addEventListener("dragover", e => { e.preventDefault(); dom.programArea.classList.add("drag-over"); });
+  dom.programArea.addEventListener("dragleave", () => dom.programArea.classList.remove("drag-over"));
+  dom.programArea.addEventListener("drop", onDropProgram);
+}
+
+// ============ LOGIN & PROGRESS ============
+async function onLogin() {
+  const name = dom.usernameInput.value.trim();
+  if (!name) { dom.usernameInput.focus(); return; }
+  state.username = name;
+
+  // Load progress
+  try {
+    const res = await fetch(`${API}/api/progress/${encodeURIComponent(name)}`);
+    state.progress = await res.json();
+  } catch {
+    state.progress = { completed: [], stars: {}, current_level: 1,
+                       typing_completed: [], typing_stars: {}, typing_best_wpm: {},
+                       logic_completed: [], logic_stars: {} };
+  }
+
+  // Load levels + typing lessons + logic puzzles
+  try {
+    const [levRes, typRes, logRes] = await Promise.all([
+      fetch(`${API}/api/levels`),
+      fetch(`${API}/api/typing`),
+      fetch(`${API}/api/logic`),
+    ]);
+    state.levels = await levRes.json();
+    state.typingLessons = await typRes.json();
+    state.logicPuzzles = await logRes.json();
+  } catch { state.levels = []; state.typingLessons = []; state.logicPuzzles = []; }
+
+  dom.userDisplay.textContent = "👤 " + name;
+  updateStarDisplay();
+  renderLevels();
+  renderTypingLessons();
+  renderLogicPuzzles();
+  renderDiploma();
+  showScreen("levels");
+}
+
+function updateStarDisplay() {
+  const codingStars = Object.values(state.progress.stars || {}).reduce((a, b) => a + b, 0);
+  const typingStars = Object.values(state.progress.typing_stars || {}).reduce((a, b) => a + b, 0);
+  const logicStars = Object.values(state.progress.logic_stars || {}).reduce((a, b) => a + b, 0);
+  dom.totalStars.textContent = "⭐ " + (codingStars + typingStars + logicStars);
+}
+
+async function saveProgress(levelId, stars) {
+  try {
+    const res = await fetch(`${API}/api/progress/${encodeURIComponent(state.username)}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ level_id: levelId, stars }),
+    });
+    state.progress = await res.json();
+    updateStarDisplay();
+  } catch (e) { console.error("Save failed", e); }
+}
+
+// ============ LEVEL SELECT ============
+function renderLevels() {
+  dom.levelsGrid.innerHTML = "";
+  state.levels.forEach(lv => {
+    const completed = state.progress.completed.includes(lv.id);
+    const locked = lv.id > (state.progress.current_level || 1);
+    const stars = state.progress.stars?.[String(lv.id)] || 0;
+
+    const card = document.createElement("div");
+    card.className = "level-card" + (completed ? " completed" : "") + (locked ? " locked" : "");
+    card.innerHTML = `
+      <div class="level-number">${lv.id}</div>
+      <h3>${esc(lv.title)}</h3>
+      <p>${esc(lv.description)}</p>
+      <div class="level-stars">${starStr(stars, 3)}</div>
+    `;
+    if (!locked) card.addEventListener("click", () => loadLevel(lv.id));
+    dom.levelsGrid.appendChild(card);
+  });
+}
+
+function starStr(count, max) {
+  return "⭐".repeat(count) + "☆".repeat(max - count);
+}
+function esc(s) { const d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
+
+// ============ LOAD LEVEL ============
+async function loadLevel(levelId) {
+  try {
+    const res = await fetch(`${API}/api/levels/${levelId}`);
+    state.currentLevel = await res.json();
+  } catch { return; }
+
+  state.program = [];
+  state.hintIndex = 0;
+  state.executing = false;
+  state.stepIndex = 0;
+
+  dom.levelTitle.textContent = `Poziom ${state.currentLevel.id}: ${state.currentLevel.title}`;
+  dom.levelDesc.textContent = state.currentLevel.description;
+  dom.gameMessage.textContent = "";
+  dom.gameMessage.className = "game-message";
+
+  renderToolbox();
+  renderProgram();
+  resetGameState();
+  renderGame();
+  showScreen("game");
+}
+
+// ============ TOOLBOX ============
+function renderToolbox() {
+  dom.toolbox.innerHTML = "";
+  const blocks = state.currentLevel.available_blocks;
+  blocks.forEach((type, idx) => {
+    const def = BLOCK_DEFS[type];
+    if (!def) return;
+    const el = createBlockElement(type, "toolbox-" + idx);
+    el.setAttribute("draggable", "true");
+    el.addEventListener("dragstart", e => {
+      e.dataTransfer.setData("text/plain", JSON.stringify({ type, source: "toolbox", idx }));
+      el.classList.add("dragging");
+    });
+    el.addEventListener("dragend", () => el.classList.remove("dragging"));
+    // touch support
+    el.addEventListener("click", () => addBlockToProgram(type));
+    dom.toolbox.appendChild(el);
+  });
+}
+
+function createBlockElement(type, id) {
+  const def = BLOCK_DEFS[type];
+  const el = document.createElement("div");
+  el.className = `block block-${type}`;
+  el.dataset.blockId = id;
+  el.dataset.blockType = type;
+
+  const iconWrap = document.createElement("span");
+  iconWrap.className = "block-icon";
+  iconWrap.innerHTML = blockIconSVG(def.icon);
+
+  const labelEl = document.createElement("span");
+  labelEl.textContent = def.label;
+
+  el.appendChild(iconWrap);
+  el.appendChild(labelEl);
+
+  if (def.container) {
+    const body = document.createElement("div");
+    body.className = "block-body";
+    body.dataset.container = "true";
+    body.addEventListener("dragover", e => { e.preventDefault(); e.stopPropagation(); });
+    body.addEventListener("drop", e => {
+      e.preventDefault(); e.stopPropagation();
+      const data = JSON.parse(e.dataTransfer.getData("text/plain"));
+      if (data.source === "program") return; // don't clone program blocks
+      addBlockToContainer(el.dataset.programIdx, data.type);
+    });
+    // Click on body should not trigger parent
+    body.addEventListener("click", e => e.stopPropagation());
+    el.appendChild(body);
+  }
+
+  return el;
+}
+
+// ============ PROGRAM AREA ============
+let blockCounter = 0;
+
+function addBlockToProgram(type) {
+  if (state.executing) return;
+  const def = BLOCK_DEFS[type];
+  if (!def) return;
+  const block = { id: blockCounter++, type, children: def.container ? [] : undefined };
+  state.program.push(block);
+  // Remove from toolbox
+  removeFromToolbox(type);
+  renderProgram();
+  renderToolbox();
+}
+
+function addBlockToContainer(parentIdx, type) {
+  if (state.executing) return;
+  const parent = state.program[parseInt(parentIdx)];
+  if (!parent || !parent.children) return;
+  const def = BLOCK_DEFS[type];
+  if (!def) return;
+  parent.children.push({ id: blockCounter++, type, children: def.container ? [] : undefined });
+  removeFromToolbox(type);
+  renderProgram();
+  renderToolbox();
+}
+
+function removeFromToolbox(type) {
+  const blocks = state.currentLevel.available_blocks;
+  const idx = blocks.indexOf(type);
+  if (idx !== -1) blocks.splice(idx, 1);
+}
+
+function returnToToolbox(type) {
+  state.currentLevel.available_blocks.push(type);
+}
+
+function removeBlock(blockId) {
+  // Find and remove from program (including children)
+  for (let i = state.program.length - 1; i >= 0; i--) {
+    if (state.program[i].id === blockId) {
+      returnAllBlocks(state.program[i]);
+      state.program.splice(i, 1);
+      renderProgram();
+      renderToolbox();
+      return;
+    }
+    if (state.program[i].children) {
+      for (let j = state.program[i].children.length - 1; j >= 0; j--) {
+        if (state.program[i].children[j].id === blockId) {
+          returnToToolbox(state.program[i].children[j].type);
+          state.program[i].children.splice(j, 1);
+          renderProgram();
+          renderToolbox();
+          return;
+        }
+      }
+    }
+  }
+}
+
+function returnAllBlocks(block) {
+  returnToToolbox(block.type);
+  if (block.children) block.children.forEach(c => returnAllBlocks(c));
+}
+
+function onDropProgram(e) {
+  e.preventDefault();
+  dom.programArea.classList.remove("drag-over");
+  try {
+    const data = JSON.parse(e.dataTransfer.getData("text/plain"));
+    if (data.source === "program") return; // don't clone program blocks
+    addBlockToProgram(data.type);
+  } catch {}
+}
+
+function renderProgram() {
+  dom.programArea.innerHTML = "";
+  if (state.program.length === 0) {
+    dom.programArea.innerHTML = '<div class="drop-placeholder">Przeciągnij bloki tutaj!</div>';
+    return;
+  }
+  state.program.forEach((block, idx) => {
+    const el = createProgramBlock(block, idx);
+    dom.programArea.appendChild(el);
+  });
+}
+
+function createProgramBlock(block, parentIdx) {
+  const def = BLOCK_DEFS[block.type];
+  const el = createBlockElement(block.type, "prog-" + block.id);
+  el.dataset.programIdx = parentIdx;
+
+  // Remove button
+  const removeBtn = document.createElement("button");
+  removeBtn.className = "btn-remove";
+  removeBtn.textContent = "×";
+  removeBtn.addEventListener("click", e => { e.stopPropagation(); removeBlock(block.id); });
+  el.appendChild(removeBtn);
+
+  // Drag from program to reorder (simplified: remove on drag out)
+  el.setAttribute("draggable", "true");
+  el.addEventListener("dragstart", e => {
+    e.dataTransfer.setData("text/plain", JSON.stringify({ type: block.type, source: "program", id: block.id }));
+    el.classList.add("dragging");
+  });
+
+  // Container children
+  if (block.children && def.container) {
+    const body = el.querySelector(".block-body");
+    if (body) {
+      block.children.forEach(child => {
+        const childEl = createBlockElement(child.type, "prog-" + child.id);
+        const childRemove = document.createElement("button");
+        childRemove.className = "btn-remove";
+        childRemove.textContent = "×";
+        childRemove.addEventListener("click", e => { e.stopPropagation(); removeBlock(child.id); });
+        childEl.appendChild(childRemove);
+        body.appendChild(childEl);
+      });
+      if (block.children.length === 0) {
+        const hint = document.createElement("div");
+        hint.className = "drop-placeholder";
+        hint.textContent = "Upuść bloki tutaj";
+        hint.style.fontSize = "0.72rem";
+        hint.style.padding = "6px";
+        body.appendChild(hint);
+      }
+    }
+  }
+
+  return el;
+}
+
+// ============ GAME RENDERING (SVG) ============
+function resetGameState() {
+  const lv = state.currentLevel;
+  state.heroX = lv.hero_start[0];
+  state.heroY = lv.hero_start[1];
+  state.heroDir = lv.hero_dir || "right";
+  state.collectedGems = [];
+  state.stepIndex = 0;
+}
+
+function renderGame() {
+  const lv = state.currentLevel;
+  const svg = dom.gameSvg;
+  const gw = lv.grid_width;
+  const gh = lv.grid_height;
+  const padding = 20;
+  const totalW = 500 - 2 * padding;
+  const totalH = 500 - 2 * padding;
+  const cellW = totalW / gw;
+  const cellH = totalH / gh;
+  svg.setAttribute("viewBox", `0 0 500 500`);
+
+  let html = "";
+
+  // Background
+  html += `<rect x="0" y="0" width="500" height="500" rx="16" fill="#F8F9FD"/>`;
+
+  // Grid cells
+  for (let y = 0; y < gh; y++) {
+    for (let x = 0; x < gw; x++) {
+      const cx = padding + x * cellW;
+      const cy = padding + y * cellH;
+      const isWall = (lv.walls || []).some(w => w[0] === x && w[1] === y);
+      const fill = isWall ? "#B2BEC3" : ((x + y) % 2 === 0 ? "#FFFFFF" : "#F0EDFF");
+      html += `<rect x="${cx + 1}" y="${cy + 1}" width="${cellW - 2}" height="${cellH - 2}" rx="6" fill="${fill}"/>`;
+      if (isWall) {
+        // Wall pattern
+        html += `<rect x="${cx + 4}" y="${cy + 4}" width="${cellW - 8}" height="${cellH - 8}" rx="4" fill="#636E72" opacity="0.3"/>`;
+      }
+    }
+  }
+
+  // Goal (star)
+  const gx = padding + lv.goal[0] * cellW + cellW / 2;
+  const gy = padding + lv.goal[1] * cellH + cellH / 2;
+  const starSize = Math.min(cellW, cellH) * 0.35;
+  html += drawStar(gx, gy, starSize, "#FDCB6E", "#F39C12");
+
+  // Gems
+  if (lv.gems) {
+    lv.gems.forEach(([gemX, gemY]) => {
+      if (!state.collectedGems.some(g => g[0] === gemX && g[1] === gemY)) {
+        const gxp = padding + gemX * cellW + cellW / 2;
+        const gyp = padding + gemY * cellH + cellH / 2;
+        html += drawGem(gxp, gyp, Math.min(cellW, cellH) * 0.25);
+      }
+    });
+  }
+
+  // Hero
+  const hx = padding + state.heroX * cellW + cellW / 2;
+  const hy = padding + state.heroY * cellH + cellH / 2;
+  const heroSize = Math.min(cellW, cellH) * 0.35;
+  html += drawHero(hx, hy, heroSize, state.heroDir);
+
+  svg.innerHTML = html;
+}
+
+function drawStar(cx, cy, size, fill, stroke) {
+  const points = [];
+  for (let i = 0; i < 5; i++) {
+    const angle = (i * 72 - 90) * Math.PI / 180;
+    points.push(`${cx + size * Math.cos(angle)},${cy + size * Math.sin(angle)}`);
+    const inner = (i * 72 + 36 - 90) * Math.PI / 180;
+    points.push(`${cx + size * 0.45 * Math.cos(inner)},${cy + size * 0.45 * Math.sin(inner)}`);
+  }
+  return `<polygon points="${points.join(" ")}" fill="${fill}" stroke="${stroke}" stroke-width="2">
+    <animateTransform attributeName="transform" type="rotate" from="0 ${cx} ${cy}" to="360 ${cx} ${cy}" dur="6s" repeatCount="indefinite"/>
+  </polygon>`;
+}
+
+function drawGem(cx, cy, size) {
+  return `<polygon points="${cx},${cy - size} ${cx + size},${cy} ${cx},${cy + size} ${cx - size},${cy}" fill="#55EFC4" stroke="#00B894" stroke-width="2">
+    <animate attributeName="opacity" values="1;0.6;1" dur="2s" repeatCount="indefinite"/>
+  </polygon>`;
+}
+
+function drawHero(cx, cy, size, dir) {
+  const angles = { right: 0, down: 90, left: 180, up: 270 };
+  const angle = angles[dir] || 0;
+  // Cute robot character
+  return `<g transform="translate(${cx},${cy}) rotate(${angle})">
+    <!-- body -->
+    <circle r="${size}" fill="#6C5CE7" stroke="#5A4BD1" stroke-width="2"/>
+    <!-- face direction arrow -->
+    <polygon points="${size * 0.6},-${size * 0.25} ${size * 0.6},${size * 0.25} ${size * 0.95},0" fill="#FFEAA7"/>
+    <!-- eyes -->
+    <circle cx="-${size * 0.2}" cy="-${size * 0.15}" r="${size * 0.15}" fill="#FFF"/>
+    <circle cx="${size * 0.2}" cy="-${size * 0.15}" r="${size * 0.15}" fill="#FFF"/>
+    <circle cx="-${size * 0.15}" cy="-${size * 0.15}" r="${size * 0.07}" fill="#2D3436"/>
+    <circle cx="${size * 0.25}" cy="-${size * 0.15}" r="${size * 0.07}" fill="#2D3436"/>
+    <!-- smile -->
+    <path d="M-${size * 0.2},${size * 0.2} Q0,${size * 0.4} ${size * 0.2},${size * 0.2}" fill="none" stroke="#FFF" stroke-width="2" stroke-linecap="round"/>
+  </g>`;
+}
+
+// ============ EXECUTION ENGINE ============
+function flattenProgram(program) {
+  // Convert block tree to flat instruction list
+  // Conditional blocks (if_path_clear, if_wall_ahead) become special objects
+  const instructions = [];
+  // Find function definition first
+  let funcBody = [];
+  for (const block of program) {
+    if (block.type === "define_func" && block.children) {
+      funcBody = block.children.map(c => c.type);
+    }
+  }
+
+  for (const block of program) {
+    if (block.type === "define_func") continue;
+    const def = BLOCK_DEFS[block.type];
+
+    if (block.type === "call_func") {
+      funcBody.forEach(t => instructions.push(t));
+    } else if (def && def.condition && def.container && block.children) {
+      // Conditional block — push as object so executeInstruction can evaluate
+      instructions.push({ type: block.type, children: block.children.map(c => c.type) });
+    } else if (def && def.container && block.children) {
+      const repeatCount = def.repeat || 1;
+      for (let r = 0; r < repeatCount; r++) {
+        for (const child of block.children) {
+          if (child.type === "call_func") {
+            funcBody.forEach(t => instructions.push(t));
+          } else {
+            instructions.push(child.type);
+          }
+        }
+      }
+    } else if (block.type === "if_wall") {
+      instructions.push("if_wall");
+    } else {
+      instructions.push(block.type);
+    }
+  }
+  return instructions;
+}
+
+async function onRun() {
+  if (state.executing) return;
+  state.executing = true;
+  dom.btnRun.disabled = true;
+  dom.gameMessage.textContent = "";
+  dom.gameMessage.className = "game-message";
+  resetGameState();
+  renderGame();
+
+  const instructions = flattenProgram(state.program);
+  let success = true;
+
+  for (let i = 0; i < instructions.length; i++) {
+    const result = executeInstruction(instructions[i]);
+    renderGame();
+    highlightBlock(i);
+    await sleep(400);
+
+    if (result === "wall") {
+      showMessage("🧱 Ups! Uderzenie w ścianę!", "error");
+      success = false;
+      break;
+    }
+    if (result === "out") {
+      showMessage("🚫 Wyjście poza planszę!", "error");
+      success = false;
+      break;
+    }
+
+    // Check goal
+    if (state.heroX === state.currentLevel.goal[0] && state.heroY === state.currentLevel.goal[1]) {
+      // Check gems
+      if (state.currentLevel.gems) {
+        const allGems = state.currentLevel.gems.every(g =>
+          state.collectedGems.some(c => c[0] === g[0] && c[1] === g[1])
+        );
+        if (!allGems) {
+          showMessage("💎 Najpierw zbierz wszystkie klejnoty!", "error");
+          success = false;
+          break;
+        }
+      }
+      // Calculate stars
+      const usedBlocks = instructions.length;
+      const minBlocks = state.currentLevel.available_blocks ? usedBlocks : usedBlocks;
+      let stars = 3;
+      if (usedBlocks > (state.currentLevel.available_blocks?.length || 999) * 0.8) stars = 2;
+      if (usedBlocks > (state.currentLevel.available_blocks?.length || 999)) stars = 1;
+
+      await sleep(300);
+      onLevelComplete(stars);
+      state.executing = false;
+      dom.btnRun.disabled = false;
+      return;
+    }
+  }
+
+  if (success && !(state.heroX === state.currentLevel.goal[0] && state.heroY === state.currentLevel.goal[1])) {
+    showMessage("🤔 Nie dotarłeś do gwiazdki! Spróbuj ponownie.", "error");
+  }
+
+  state.executing = false;
+  dom.btnRun.disabled = false;
+}
+
+async function onStep() {
+  if (state.executing) return;
+  const instructions = flattenProgram(state.program);
+  if (state.stepIndex >= instructions.length) {
+    showMessage("Brak kolejnych kroków!", "error");
+    return;
+  }
+  if (state.stepIndex === 0) {
+    resetGameState();
+    renderGame();
+  }
+
+  const result = executeInstruction(instructions[state.stepIndex]);
+  renderGame();
+  highlightBlock(state.stepIndex);
+  state.stepIndex++;
+
+  if (result === "wall") { showMessage("🧱 Ups! Uderzenie w ścianę!", "error"); state.stepIndex = 0; return; }
+  if (result === "out") { showMessage("🚫 Wyjście poza planszę!", "error"); state.stepIndex = 0; return; }
+
+  if (state.heroX === state.currentLevel.goal[0] && state.heroY === state.currentLevel.goal[1]) {
+    if (state.currentLevel.gems) {
+      const allGems = state.currentLevel.gems.every(g =>
+        state.collectedGems.some(c => c[0] === g[0] && c[1] === g[1])
+      );
+      if (!allGems) { showMessage("💎 Zbierz wszystkie klejnoty!", "error"); return; }
+    }
+    onLevelComplete(2);
+    state.stepIndex = 0;
+  }
+}
+
+function executeInstruction(instr) {
+  const lv = state.currentLevel;
+  const type = typeof instr === "string" ? instr : instr.type;
+
+  // Conditional blocks — evaluate condition and run children if true
+  if (type === "if_path_clear" && typeof instr === "object") {
+    const [dx, dy] = DIR_DELTAS[state.heroDir];
+    const nx = state.heroX + dx;
+    const ny = state.heroY + dy;
+    const clear = nx >= 0 && ny >= 0 && nx < lv.grid_width && ny < lv.grid_height &&
+      !(lv.walls || []).some(w => w[0] === nx && w[1] === ny);
+    if (clear && instr.children) {
+      for (const child of instr.children) {
+        const r = executeInstruction(child);
+        if (r === "wall" || r === "out") return r;
+      }
+    }
+    return "ok";
+  }
+
+  if (type === "if_wall_ahead" && typeof instr === "object") {
+    const [dx, dy] = DIR_DELTAS[state.heroDir];
+    const nx = state.heroX + dx;
+    const ny = state.heroY + dy;
+    const wallAhead = nx < 0 || ny < 0 || nx >= lv.grid_width || ny >= lv.grid_height ||
+      (lv.walls || []).some(w => w[0] === nx && w[1] === ny);
+    if (wallAhead && instr.children) {
+      for (const child of instr.children) {
+        const r = executeInstruction(child);
+        if (r === "wall" || r === "out") return r;
+      }
+    }
+    return "ok";
+  }
+
+  if (type === "forward") {
+    const [dx, dy] = DIR_DELTAS[state.heroDir];
+    const nx = state.heroX + dx;
+    const ny = state.heroY + dy;
+    if (nx < 0 || ny < 0 || nx >= lv.grid_width || ny >= lv.grid_height) return "out";
+    if ((lv.walls || []).some(w => w[0] === nx && w[1] === ny)) return "wall";
+    state.heroX = nx;
+    state.heroY = ny;
+    return "ok";
+  }
+
+  if (type === "turn_right") {
+    const idx = DIR_ORDER.indexOf(state.heroDir);
+    state.heroDir = DIR_ORDER[(idx + 1) % 4];
+    return "ok";
+  }
+
+  if (type === "turn_left") {
+    const idx = DIR_ORDER.indexOf(state.heroDir);
+    state.heroDir = DIR_ORDER[(idx + 3) % 4];
+    return "ok";
+  }
+
+  if (type === "collect") {
+    if (lv.gems) {
+      const gem = lv.gems.find(g => g[0] === state.heroX && g[1] === state.heroY);
+      if (gem && !state.collectedGems.some(c => c[0] === gem[0] && c[1] === gem[1])) {
+        state.collectedGems.push([gem[0], gem[1]]);
+      }
+    }
+    return "ok";
+  }
+
+  if (type === "if_wall") {
+    const [dx, dy] = DIR_DELTAS[state.heroDir];
+    const nx = state.heroX + dx;
+    const ny = state.heroY + dy;
+    const wallAhead = nx < 0 || ny < 0 || nx >= lv.grid_width || ny >= lv.grid_height ||
+      (lv.walls || []).some(w => w[0] === nx && w[1] === ny);
+    if (wallAhead) {
+      // Turn right when wall ahead
+      const idx = DIR_ORDER.indexOf(state.heroDir);
+      state.heroDir = DIR_ORDER[(idx + 1) % 4];
+    } else {
+      // Move forward when path is clear
+      state.heroX = nx;
+      state.heroY = ny;
+    }
+    return "ok";
+  }
+
+  return "ok";
+}
+
+function highlightBlock(index) {
+  $$(".block.executing").forEach(b => b.classList.remove("executing"));
+  const blocks = dom.programArea.querySelectorAll(".block");
+  if (blocks[index]) blocks[index].classList.add("executing");
+}
+
+function showMessage(text, type) {
+  dom.gameMessage.textContent = text;
+  dom.gameMessage.className = "game-message " + (type || "");
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function stopExecution() {
+  state.executing = false;
+  dom.btnRun.disabled = false;
+  if (state.animTimer) { clearTimeout(state.animTimer); state.animTimer = null; }
+}
+
+// ============ LEVEL COMPLETE ============
+function onLevelComplete(stars) {
+  saveProgress(state.currentLevel.id, stars);
+
+  dom.modalStars.textContent = starStr(stars, 3);
+  const messages = [
+    "Dobry początek! Dasz radę lepiej? 🤔",
+    "Świetna robota! Prawie perfekcyjnie! 🎊",
+    "PERFEKCYJNIE! Jesteś geniuszem kodowania! 🏆",
+  ];
+  dom.modalMessage.textContent = messages[stars - 1] || messages[2];
+  showModal("success");
+}
+
+function onNextLevel() {
+  hideModal("success");
+  const nextId = state.currentLevel.id + 1;
+  const exists = state.levels.find(l => l.id === nextId);
+  if (exists && nextId <= (state.progress.current_level || 1)) {
+    loadLevel(nextId);
+  } else if (exists) {
+    // Just unlocked
+    loadLevel(nextId);
+  } else {
+    showScreen("levels");
+    renderLevels();
+  }
+}
+
+// ============ CONTROLS ============
+function onClear() {
+  if (state.executing) return;
+  state.program.forEach(b => returnAllBlocks(b));
+  state.program = [];
+  renderProgram();
+  renderToolbox();
+}
+
+function onResetLevel() {
+  stopExecution();
+  resetGameState();
+  renderGame();
+  dom.gameMessage.textContent = "";
+  dom.gameMessage.className = "game-message";
+  state.stepIndex = 0;
+}
+
+function onHint() {
+  const hints = state.currentLevel.hints || [];
+  if (hints.length === 0) {
+    dom.hintText.textContent = "Brak podpowiedzi do tego poziomu. Dasz radę!";
+  } else {
+    dom.hintText.textContent = hints[state.hintIndex % hints.length];
+    state.hintIndex++;
+  }
+  showModal("hint");
+}
+
+// ============ MODALS ============
+function showModal(name) {
+  $(`#modal-${name}`).classList.add("visible");
+}
+function hideModal(name) {
+  $(`#modal-${name}`).classList.remove("visible");
+}
+
+// ============ TYPING LESSON LIST ============
+function renderTypingLessons() {
+  if (!dom.typingGrid) return;
+  dom.typingGrid.innerHTML = "";
+  state.typingLessons.forEach(lesson => {
+    const completed = (state.progress.typing_completed || []).includes(lesson.id);
+    const stars = (state.progress.typing_stars || {})[String(lesson.id)] || 0;
+    const bestWpm = (state.progress.typing_best_wpm || {})[String(lesson.id)] || 0;
+
+    const card = document.createElement("div");
+    card.className = "level-card" + (completed ? " completed" : "");
+    card.innerHTML = `
+      <div class="level-number">${lesson.id}</div>
+      <h3>${esc(lesson.title)}</h3>
+      <p>${esc(lesson.description)}</p>
+      <div class="level-stars">${starStr(stars, 3)}</div>
+      ${bestWpm ? `<div style="font-size:0.8rem;color:#636E72;margin-top:4px">Najlepsze: ${bestWpm} WPM</div>` : ""}
+      <button class="btn btn-small btn-car-bonus" title="Wyścig literek!">🏎️ Wyścig</button>
+    `;
+    card.querySelector("h3").addEventListener("click", (e) => { e.stopPropagation(); loadTypingLesson(lesson.id); });
+    card.querySelector("p").addEventListener("click", (e) => { e.stopPropagation(); loadTypingLesson(lesson.id); });
+    card.querySelector(".level-number").addEventListener("click", (e) => { e.stopPropagation(); loadTypingLesson(lesson.id); });
+    card.querySelector(".level-stars").addEventListener("click", (e) => { e.stopPropagation(); loadTypingLesson(lesson.id); });
+    card.querySelector(".btn-car-bonus").addEventListener("click", (e) => {
+      e.stopPropagation();
+      launchCarGameForLesson(lesson.id);
+    });
+    card.addEventListener("click", () => loadTypingLesson(lesson.id));
+    dom.typingGrid.appendChild(card);
+  });
+}
+
+async function launchCarGameForLesson(lessonId) {
+  try {
+    const res = await fetch(`${API}/api/typing/${lessonId}`);
+    const lesson = await res.json();
+    const chars = lesson.chars || lesson.words.join("").replace(/\s/g, "");
+    startCarGame(lessonId, chars);
+  } catch (e) { console.error("Nie udało się załadować lekcji", e); }
+}
+
+// ============ LOAD TYPING LESSON ============
+async function loadTypingLesson(lessonId) {
+  try {
+    const res = await fetch(`${API}/api/typing/${lessonId}`);
+    state.currentTyping = await res.json();
+  } catch { return; }
+
+  dom.typingTitle.textContent = `Lekcja ${state.currentTyping.id}: ${state.currentTyping.title}`;
+  dom.typingDesc.textContent = state.currentTyping.description;
+
+  buildTypingText();
+  resetTyping();
+  renderKeyboard();
+  showScreen("typing");
+  dom.typingInput.focus();
+}
+
+function buildTypingText() {
+  const lesson = state.currentTyping;
+  const words = [...lesson.words];
+  // Shuffle and repeat to fill time
+  const shuffled = [];
+  for (let r = 0; r < 5; r++) {
+    for (let i = words.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [words[i], words[j]] = [words[j], words[i]];
+    }
+    shuffled.push(...words);
+  }
+  state.typingText = shuffled.join(" ");
+}
+
+function resetTyping() {
+  state.typingPos = 0;
+  state.typingCorrect = 0;
+  state.typingErrors = 0;
+  state.typingStarted = false;
+  state.typingFinished = false;
+  state.typingStartTime = null;
+  state.typingTimeLeft = state.currentTyping.time_limit;
+
+  if (state.typingTimerInterval) {
+    clearInterval(state.typingTimerInterval);
+    state.typingTimerInterval = null;
+  }
+
+  dom.typingInput.value = "";
+  dom.typingInput.disabled = false;
+  dom.typingInput.classList.remove("input-error", "input-correct");
+  dom.typingTimer.textContent = `⏱ ${state.typingTimeLeft}s`;
+  dom.typingWpm.textContent = "🚀 0 WPM";
+  dom.statAccuracy.textContent = "100%";
+  dom.statSpeed.textContent = "0";
+  dom.statCorrect.textContent = "0";
+  dom.statErrors.textContent = "0";
+
+  updateTypingDisplay();
+  clearKeyboardHighlights();
+  highlightNextKey();
+}
+
+function stopTyping() {
+  if (state.typingTimerInterval) {
+    clearInterval(state.typingTimerInterval);
+    state.typingTimerInterval = null;
+  }
+  state.typingFinished = true;
+}
+
+// ============ TYPING DISPLAY ============
+function updateTypingDisplay() {
+  const text = state.typingText;
+  const pos = state.typingPos;
+  dom.typingDone.textContent = text.substring(0, pos);
+  dom.typingCurrent.textContent = text[pos] || "";
+  dom.typingRemaining.textContent = text.substring(pos + 1);
+  // Auto-scroll to keep current character visible
+  if (dom.typingCurrent.textContent) {
+    dom.typingCurrent.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }
+}
+
+// ============ TYPING INPUT HANDLER ============
+function onTypingInput() {
+  if (state.typingFinished) return;
+
+  // Start timer on first keystroke
+  if (!state.typingStarted) {
+    state.typingStarted = true;
+    state.typingStartTime = Date.now();
+    state.typingTimerInterval = setInterval(typingTick, 1000);
+  }
+
+  const inputVal = dom.typingInput.value;
+  if (inputVal.length === 0) return;
+
+  const lastChar = inputVal[inputVal.length - 1];
+  const expected = state.typingText[state.typingPos];
+
+  if (lastChar === expected) {
+    state.typingCorrect++;
+    state.typingPos++;
+    dom.typingInput.value = "";
+    dom.typingInput.classList.remove("input-error");
+    dom.typingInput.classList.add("input-correct");
+    setTimeout(() => dom.typingInput.classList.remove("input-correct"), 150);
+    markKey(expected, "correct");
+  } else {
+    state.typingErrors++;
+    dom.typingInput.value = "";
+    dom.typingInput.classList.remove("input-correct");
+    dom.typingInput.classList.add("input-error");
+    setTimeout(() => dom.typingInput.classList.remove("input-error"), 300);
+    markKey(lastChar, "wrong");
+  }
+
+  updateTypingDisplay();
+  updateTypingStats();
+  highlightNextKey();
+
+  // Check if text finished
+  if (state.typingPos >= state.typingText.length) {
+    finishTyping();
+  }
+}
+
+function typingTick() {
+  state.typingTimeLeft--;
+  dom.typingTimer.textContent = `⏱ ${state.typingTimeLeft}s`;
+  updateTypingStats();
+
+  if (state.typingTimeLeft <= 0) {
+    finishTyping();
+  }
+}
+
+function updateTypingStats() {
+  const total = state.typingCorrect + state.typingErrors;
+  const accuracy = total > 0 ? Math.round((state.typingCorrect / total) * 100) : 100;
+  const elapsed = state.typingStartTime ? (Date.now() - state.typingStartTime) / 60000 : 0;
+  const wpm = elapsed > 0 ? Math.round((state.typingCorrect / 5) / elapsed) : 0;
+
+  dom.statAccuracy.textContent = accuracy + "%";
+  dom.statSpeed.textContent = wpm;
+  dom.statCorrect.textContent = state.typingCorrect;
+  dom.statErrors.textContent = state.typingErrors;
+  dom.typingWpm.textContent = `🚀 ${wpm} WPM`;
+}
+
+function finishTyping() {
+  stopTyping();
+  dom.typingInput.disabled = true;
+
+  const total = state.typingCorrect + state.typingErrors;
+  const accuracy = total > 0 ? Math.round((state.typingCorrect / total) * 100) : 100;
+  const elapsed = state.typingStartTime ? (Date.now() - state.typingStartTime) / 60000 : 0.01;
+  const wpm = Math.round((state.typingCorrect / 5) / elapsed);
+
+  // Calculate stars
+  let stars = 1;
+  const minWpm = state.currentTyping.min_wpm || 5;
+  if (wpm >= minWpm && accuracy >= 80) stars = 2;
+  if (wpm >= minWpm * 2 && accuracy >= 90) stars = 3;
+
+  // Save progress
+  saveTypingProgress(state.currentTyping.id, stars, wpm);
+
+  // Show modal
+  dom.typingResultStars.textContent = starStr(stars, 3);
+  dom.resultWpm.textContent = wpm;
+  dom.resultAccuracy.textContent = accuracy + "%";
+
+  const messages = [
+    "Dobry początek! Ćwicz dalej! 💪",
+    "Świetna robota! Coraz szybciej! 🎊",
+    "PERFEKCYJNIE! Mistrz klawiatury! 🏆",
+  ];
+  dom.typingResultTitle.textContent = stars === 3 ? "🏆 Perfekcyjnie!" : stars === 2 ? "🎊 Świetnie!" : "💪 Nieźle!";
+  dom.typingResultMessage.textContent = messages[stars - 1];
+
+  // Replace "Następna lekcja" with "Wyścig literek"
+  dom.btnTypingNext.textContent = "🏎️ Wyścig literek!";
+  showModal("typing-result");
+}
+
+async function saveTypingProgress(lessonId, stars, wpm) {
+  try {
+    const res = await fetch(`${API}/api/progress/${encodeURIComponent(state.username)}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ typing_id: lessonId, typing_stars: stars, typing_wpm: wpm }),
+    });
+    state.progress = await res.json();
+    updateStarDisplay();
+  } catch (e) { console.error("Zapis nie powiódł się", e); }
+}
+
+function onNextTypingLesson() {
+  hideModal("typing-result");
+  // Launch car driving game using this lesson's characters
+  const chars = state.currentTyping.chars || state.currentTyping.words.join("").replace(/\s/g, "");
+  startCarGame(state.currentTyping.id, chars);
+}
+
+// ============ KEYBOARD VISUAL ============
+const KB_ROWS = [
+  ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
+  ["a", "s", "d", "f", "g", "h", "j", "k", "l"],
+  ["z", "x", "c", "v", "b", "n", "m"],
+  [" "],
+];
+
+function renderKeyboard() {
+  if (!dom.keyboardVisual) return;
+  dom.keyboardVisual.innerHTML = "";
+  KB_ROWS.forEach(row => {
+    const rowEl = document.createElement("div");
+    rowEl.className = "kb-row";
+    row.forEach(key => {
+      const keyEl = document.createElement("div");
+      keyEl.className = "kb-key" + (key === " " ? " space" : "");
+      keyEl.dataset.key = key;
+      keyEl.textContent = key === " " ? "spacja" : key.toUpperCase();
+      rowEl.appendChild(keyEl);
+    });
+    dom.keyboardVisual.appendChild(rowEl);
+  });
+}
+
+function highlightNextKey() {
+  clearKeyboardHighlights();
+  if (state.typingPos >= state.typingText.length) return;
+  const nextChar = state.typingText[state.typingPos].toLowerCase();
+  const keyEl = dom.keyboardVisual.querySelector(`[data-key="${CSS.escape(nextChar)}"]`);
+  if (keyEl) keyEl.classList.add("active");
+}
+
+function markKey(char, cls) {
+  const keyEl = dom.keyboardVisual.querySelector(`[data-key="${CSS.escape(char.toLowerCase())}"]`);
+  if (keyEl) {
+    keyEl.classList.add(cls);
+    setTimeout(() => keyEl.classList.remove(cls), 400);
+  }
+}
+
+function clearKeyboardHighlights() {
+  dom.keyboardVisual.querySelectorAll(".kb-key").forEach(k => {
+    k.classList.remove("active", "correct", "wrong");
+  });
+}
+
+// ============ CAR DRIVING GAME ============
+const CAR_W = 500, CAR_H = 600;
+const ROAD_LEFT = 100, ROAD_RIGHT = 400;
+const LANE_W = (ROAD_RIGHT - ROAD_LEFT) / 3;
+const CAR_Y = 500;  // car fixed y
+
+// Visual effects
+let carRoadOffset = 0;
+let carEffects = []; // {type, x, y, t, text}
+let carPlayerLane = 1; // 0,1,2
+let carShake = 0;
+
+function startCarGame(lessonId, chars) {
+  state.carActive = true;
+  state.carScore = 0;
+  state.carLives = 3;
+  state.carCorrect = 0;
+  state.carTotal = 0;
+  state.carLetters = [];
+  state.carLessonId = lessonId;
+  state.carChars = chars;
+  state.carLastSpawn = 0;
+  carRoadOffset = 0;
+  carEffects = [];
+  carPlayerLane = 1;
+  carShake = 0;
+
+  dom.carTitle.textContent = `🏎️ Wyścig literek – Lekcja ${lessonId}`;
+  dom.carScore.textContent = "🏆 0";
+  dom.carLives.textContent = "❤️ 3";
+  dom.carMessage.textContent = "";
+  dom.carMessage.className = "game-message";
+
+  showScreen("car");
+  state.carAnimFrame = requestAnimationFrame(carGameLoop);
+}
+
+function stopCarGame() {
+  state.carActive = false;
+  if (state.carAnimFrame) {
+    cancelAnimationFrame(state.carAnimFrame);
+    state.carAnimFrame = null;
+  }
+}
+
+let carLastTime = 0;
+function carGameLoop(timestamp) {
+  if (!state.carActive) return;
+  const dt = carLastTime ? (timestamp - carLastTime) / 1000 : 0.016;
+  carLastTime = timestamp;
+
+  // Road scroll animation
+  const speed = 120 + state.carScore * 3;
+  carRoadOffset = (carRoadOffset + speed * dt) % 60;
+
+  // Spawn new letters
+  state.carLastSpawn = (state.carLastSpawn || 0) + dt;
+  const spawnInterval = Math.max(0.8, 2 - state.carScore * 0.02);
+  if (state.carLastSpawn >= spawnInterval) {
+    state.carLastSpawn = 0;
+    spawnCarLetter();
+  }
+
+  // Move letters down
+  for (const letter of state.carLetters) {
+    letter.y += speed * dt;
+    // Gentle wobble
+    letter.wobble = (letter.wobble || 0) + dt * 3;
+  }
+
+  // Update effects
+  carEffects = carEffects.filter(e => e.t > 0);
+  for (const e of carEffects) { e.t -= dt; e.y -= 40 * dt; }
+
+  // Decay screen shake
+  if (carShake > 0) carShake = Math.max(0, carShake - dt * 15);
+
+  // Check missed letters (past car)
+  const missed = state.carLetters.filter(l => l.y > CAR_Y + 40);
+  missed.forEach(l => {
+    state.carLives--;
+    state.carTotal++;
+    carShake = 4;
+    carEffects.push({ type: "miss", x: l.x, y: CAR_Y, t: 0.7, text: "✗" });
+  });
+  state.carLetters = state.carLetters.filter(l => l.y <= CAR_Y + 40);
+  dom.carLives.textContent = "❤️ " + Math.max(0, state.carLives);
+
+  renderCarGame();
+
+  if (state.carLives <= 0) {
+    finishCarGame();
+    return;
+  }
+
+  state.carAnimFrame = requestAnimationFrame(carGameLoop);
+}
+
+function spawnCarLetter() {
+  const chars = state.carChars;
+  const char = chars[Math.floor(Math.random() * chars.length)];
+  const lanes = [ROAD_LEFT + LANE_W * 0.5, ROAD_LEFT + LANE_W * 1.5, ROAD_LEFT + LANE_W * 2.5];
+  const x = lanes[Math.floor(Math.random() * 3)];
+  state.carLetters.push({ char, x, y: -30 });
+}
+
+function onCarKeyDown(e) {
+  if (!state.carActive) return;
+  const key = e.key.toLowerCase();
+  // Find the closest matching letter to the car
+  let bestIdx = -1;
+  let bestY = -1;
+  for (let i = 0; i < state.carLetters.length; i++) {
+    if (state.carLetters[i].char === key && state.carLetters[i].y > bestY) {
+      bestY = state.carLetters[i].y;
+      bestIdx = i;
+    }
+  }
+  if (bestIdx !== -1) {
+    const hit = state.carLetters[bestIdx];
+    carEffects.push({ type: "hit", x: hit.x, y: hit.y, t: 0.6, text: `+10` });
+    state.carLetters.splice(bestIdx, 1);
+    state.carScore += 10;
+    state.carCorrect++;
+    state.carTotal++;
+    dom.carScore.textContent = "🏆 " + state.carScore;
+  } else if (key.length === 1 && key.match(/[a-z]/)) {
+    // Wrong key
+    state.carTotal++;
+    carShake = 2;
+    carEffects.push({ type: "wrong", x: 250, y: CAR_Y - 40, t: 0.5, text: key.toUpperCase() + "?" });
+  }
+}
+
+function renderCarGame() {
+  const svg = dom.carSvg;
+  const shX = carShake ? (Math.random() - 0.5) * carShake : 0;
+  const shY = carShake ? (Math.random() - 0.5) * carShake : 0;
+  let html = `<g transform="translate(${shX.toFixed(1)},${shY.toFixed(1)})">`;
+
+  // --- SKY gradient ---
+  html += `<defs>
+    <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#74B9FF"/>
+      <stop offset="100%" stop-color="#DFE6E9"/>
+    </linearGradient>
+    <linearGradient id="roadGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#636E72"/>
+      <stop offset="10%" stop-color="#4A4E52"/>
+      <stop offset="50%" stop-color="#555B5F"/>
+      <stop offset="90%" stop-color="#4A4E52"/>
+      <stop offset="100%" stop-color="#636E72"/>
+    </linearGradient>
+    <radialGradient id="signGlow">
+      <stop offset="0%" stop-color="#FFEAA7" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#FFEAA7" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="3" stdDeviation="3" flood-opacity="0.3"/>
+    </filter>
+  </defs>`;
+
+  // Sky
+  html += `<rect x="0" y="0" width="${CAR_W}" height="${CAR_H}" fill="url(#skyGrad)"/>`;
+
+  // --- Grass with texture ---
+  html += `<rect x="0" y="0" width="${ROAD_LEFT}" height="${CAR_H}" fill="#55EFC4"/>`;
+  html += `<rect x="${ROAD_RIGHT}" y="0" width="${CAR_W - ROAD_RIGHT}" height="${CAR_H}" fill="#55EFC4"/>`;
+  // Grass detail stripes
+  for (let gy = -60 + (carRoadOffset * 0.3 % 40); gy < CAR_H; gy += 40) {
+    html += `<line x1="10" y1="${gy}" x2="30" y2="${gy + 8}" stroke="#00D2A0" stroke-width="2" opacity="0.5"/>`;
+    html += `<line x1="60" y1="${gy + 15}" x2="80" y2="${gy + 23}" stroke="#00D2A0" stroke-width="2" opacity="0.5"/>`;
+    html += `<line x1="${ROAD_RIGHT + 20}" y1="${gy + 10}" x2="${ROAD_RIGHT + 40}" y2="${gy + 18}" stroke="#00D2A0" stroke-width="2" opacity="0.5"/>`;
+    html += `<line x1="${ROAD_RIGHT + 60}" y1="${gy + 25}" x2="${ROAD_RIGHT + 80}" y2="${gy + 33}" stroke="#00D2A0" stroke-width="2" opacity="0.5"/>`;
+  }
+
+  // --- Trees (parallax) ---
+  const treePositions = [
+    { x: 35, side: "left" }, { x: 65, side: "left" },
+    { x: ROAD_RIGHT + 30, side: "right" }, { x: ROAD_RIGHT + 70, side: "right" },
+  ];
+  for (const tp of treePositions) {
+    for (let ty = -80 + (carRoadOffset * 0.6 % 180); ty < CAR_H + 80; ty += 180) {
+      html += `<g transform="translate(${tp.x},${ty})">
+        <rect x="-4" y="10" width="8" height="20" rx="2" fill="#A0522D"/>
+        <polygon points="0,-15 -16,12 16,12" fill="#00B894" opacity="0.9"/>
+        <polygon points="0,-25 -12,0 12,0" fill="#00CEC9" opacity="0.8"/>
+      </g>`;
+    }
+  }
+
+  // --- Road ---
+  html += `<rect x="${ROAD_LEFT}" y="0" width="${ROAD_RIGHT - ROAD_LEFT}" height="${CAR_H}" fill="url(#roadGrad)"/>`;
+  // Road edge curbs (red-white)
+  for (let cy = -60 + (carRoadOffset % 30); cy < CAR_H; cy += 30) {
+    html += `<rect x="${ROAD_LEFT - 4}" y="${cy}" width="8" height="15" rx="1" fill="#E17055"/>`;
+    html += `<rect x="${ROAD_LEFT - 4}" y="${cy + 15}" width="8" height="15" rx="1" fill="#FFF"/>`;
+    html += `<rect x="${ROAD_RIGHT - 4}" y="${cy}" width="8" height="15" rx="1" fill="#E17055"/>`;
+    html += `<rect x="${ROAD_RIGHT - 4}" y="${cy + 15}" width="8" height="15" rx="1" fill="#FFF"/>`;
+  }
+  // Lane markings (scrolling)
+  for (let i = 1; i < 3; i++) {
+    const lx = ROAD_LEFT + LANE_W * i;
+    for (let y = -60 + carRoadOffset; y < CAR_H; y += 60) {
+      html += `<rect x="${lx - 2}" y="${y}" width="4" height="30" fill="#FFEAA7" rx="2" opacity="0.7"/>`;
+    }
+  }
+
+  // --- Speed lines (when fast) ---
+  if (state.carScore > 50) {
+    const lineAlpha = Math.min(0.4, state.carScore * 0.002);
+    for (let sl = 0; sl < 5; sl++) {
+      const slx = ROAD_LEFT + 10 + (sl * 65) % (ROAD_RIGHT - ROAD_LEFT - 20);
+      const sly = (carRoadOffset * 4 + sl * 137) % CAR_H;
+      html += `<line x1="${slx}" y1="${sly}" x2="${slx}" y2="${sly + 40 + state.carScore * 0.3}" stroke="#FFF" stroke-width="1.5" opacity="${lineAlpha}"/>`;
+    }
+  }
+
+  // --- Falling letter signs ---
+  for (const letter of state.carLetters) {
+    const wobbleX = Math.sin(letter.wobble || 0) * 3;
+    const proximity = Math.max(0, 1 - Math.abs(letter.y - CAR_Y) / CAR_H);
+    const scale = 0.7 + proximity * 0.35;
+    html += `<g transform="translate(${letter.x + wobbleX},${letter.y}) scale(${scale.toFixed(2)})" filter="url(#shadow)">`;
+    // Sign glow
+    html += `<circle cx="0" cy="0" r="35" fill="url(#signGlow)"/>`;
+    // Sign post
+    html += `<rect x="-3" y="20" width="6" height="22" fill="#B2BEC3" rx="2"/>`;
+    // Sign board with gradient
+    html += `<rect x="-26" y="-26" width="52" height="52" rx="12" fill="#FFEAA7" stroke="#F39C12" stroke-width="2.5"/>`;
+    // Inner diamond decoration
+    html += `<rect x="-17" y="-17" width="34" height="34" rx="6" fill="none" stroke="#F39C12" stroke-width="1" opacity="0.3" transform="rotate(3)"/>`;
+    // Letter
+    html += `<text x="0" y="10" text-anchor="middle" fill="#2D3436" font-size="30" font-weight="800" font-family="Nunito">${letter.char.toUpperCase()}</text>`;
+    html += `</g>`;
+  }
+
+  // --- Car (detailed) ---
+  const carX = ROAD_LEFT + LANE_W * (carPlayerLane + 0.5);
+  html += `<g transform="translate(${carX}, ${CAR_Y})" filter="url(#shadow)">`;
+  // Exhaust particles
+  if (state.carScore > 30) {
+    for (let ei = 0; ei < 3; ei++) {
+      const ey = 30 + ei * 8 + (carRoadOffset * 2 + ei * 40) % 20;
+      const ea = 0.4 - ei * 0.12;
+      html += `<circle cx="${-3 + ei * 3}" cy="${ey}" r="${3 + ei * 2}" fill="#B2BEC3" opacity="${ea}"/>`;
+    }
+  }
+  // Car body
+  html += `<rect x="-24" y="-40" width="48" height="68" rx="12" fill="#E17055"/>`;
+  // Hood highlights
+  html += `<rect x="-20" y="-36" width="40" height="8" rx="4" fill="#E8604C" opacity="0.6"/>`;
+  // Windshield
+  html += `<rect x="-17" y="-28" width="34" height="18" rx="5" fill="#74B9FF" opacity="0.85"/>`;
+  html += `<rect x="-14" y="-26" width="12" height="14" rx="3" fill="#A5D8FF" opacity="0.4"/>`;
+  // Roof
+  html += `<rect x="-18" y="-8" width="36" height="14" rx="4" fill="#D63031"/>`;
+  // Rear window
+  html += `<rect x="-14" y="8" width="28" height="10" rx="4" fill="#74B9FF" opacity="0.7"/>`;
+  // Wheels with detail
+  html += `<g>
+    <rect x="-28" y="-30" width="10" height="16" rx="4" fill="#2D3436"/>
+    <rect x="-26" y="-28" width="6" height="4" rx="1" fill="#636E72"/>
+    <rect x="18" y="-30" width="10" height="16" rx="4" fill="#2D3436"/>
+    <rect x="20" y="-28" width="6" height="4" rx="1" fill="#636E72"/>
+    <rect x="-28" y="12" width="10" height="16" rx="4" fill="#2D3436"/>
+    <rect x="-26" y="14" width="6" height="4" rx="1" fill="#636E72"/>
+    <rect x="18" y="12" width="10" height="16" rx="4" fill="#2D3436"/>
+    <rect x="20" y="14" width="6" height="4" rx="1" fill="#636E72"/>
+  </g>`;
+  // Headlights
+  html += `<ellipse cx="-14" cy="-38" rx="4" ry="3" fill="#FFEAA7" opacity="0.9"/>`;
+  html += `<ellipse cx="14" cy="-38" rx="4" ry="3" fill="#FFEAA7" opacity="0.9"/>`;
+  // Tail lights
+  html += `<rect x="-20" y="22" width="8" height="4" rx="2" fill="#FF6B6B"/>`;
+  html += `<rect x="12" y="22" width="8" height="4" rx="2" fill="#FF6B6B"/>`;
+  html += `</g>`;
+
+  // --- Effects (floating text) ---
+  for (const e of carEffects) {
+    const alpha = Math.min(1, e.t * 2);
+    const color = e.type === "hit" ? "#00B894" : e.type === "wrong" ? "#636E72" : "#E17055";
+    const size = e.type === "hit" ? 24 : 20;
+    html += `<text x="${e.x}" y="${e.y}" text-anchor="middle" fill="${color}" font-size="${size}" font-weight="800" opacity="${alpha.toFixed(2)}">${e.text}</text>`;
+    if (e.type === "hit") {
+      // Sparkle particles
+      for (let si = 0; si < 3; si++) {
+        const angle = (si / 3) * Math.PI * 2 + e.t * 5;
+        const dist = (0.6 - e.t) * 30;
+        const sx = e.x + Math.cos(angle) * dist;
+        const sy = e.y + Math.sin(angle) * dist;
+        html += `<circle cx="${sx.toFixed(1)}" cy="${sy.toFixed(1)}" r="2.5" fill="#FFEAA7" opacity="${(alpha * 0.8).toFixed(2)}"/>`;
+      }
+    }
+  }
+
+  // --- HUD: Lives as hearts ---
+  for (let i = 0; i < state.carLives; i++) {
+    const hx = 25 + i * 35;
+    html += `<g transform="translate(${hx}, 25)">
+      <path d="M0-6C-2-10-8-10-8-5S0 4 0 6C0 4 8-5 8-5S8-10 2-10Z" fill="#E17055" stroke="#C0392B" stroke-width="1"/>
+    </g>`;
+  }
+
+  // --- Score display in-game ---
+  html += `<rect x="${CAR_W - 110}" y="8" width="100" height="30" rx="15" fill="rgba(0,0,0,0.3)"/>`;
+  html += `<text x="${CAR_W - 60}" y="29" text-anchor="middle" fill="#FFEAA7" font-size="16" font-weight="700">⭐ ${state.carScore}</text>`;
+
+  html += `</g>`;
+  svg.innerHTML = html;
+}
+
+function finishCarGame() {
+  stopCarGame();
+  const accuracy = state.carTotal > 0 ? Math.round((state.carCorrect / state.carTotal) * 100) : 0;
+  let stars = 1;
+  if (state.carScore >= 100 && accuracy >= 70) stars = 2;
+  if (state.carScore >= 200 && accuracy >= 85) stars = 3;
+
+  dom.carResultStars.textContent = starStr(stars, 3);
+  dom.carResultScore.textContent = state.carScore;
+  dom.carResultAccuracy.textContent = accuracy + "%";
+
+  const messages = [
+    "Niezły początek kierowco! 🚗",
+    "Świetna jazda! Coraz lepiej! 🏁",
+    "MISTRZ KIEROWNICY! Perfekcyjnie! 🏆",
+  ];
+  dom.carResultTitle.textContent = stars === 3 ? "🏆 Mistrz!" : stars === 2 ? "🏁 Świetnie!" : "🚗 Nieźle!";
+  dom.carResultMessage.textContent = messages[stars - 1];
+  showModal("car-result");
+}
+
+// ============ LOGIC GAME ============
+function renderLogicPuzzles() {
+  if (!dom.logicGrid) return;
+  dom.logicGrid.innerHTML = "";
+  (state.logicPuzzles || []).forEach(puzzle => {
+    const completed = (state.progress.logic_completed || []).includes(puzzle.id);
+    const stars = (state.progress.logic_stars || {})[String(puzzle.id)] || 0;
+
+    const card = document.createElement("div");
+    card.className = "level-card" + (completed ? " completed" : "");
+    card.innerHTML = `
+      <div class="level-number">${puzzle.id}</div>
+      <h3>${esc(puzzle.title)}</h3>
+      <p>${esc(puzzle.description)}</p>
+      <div class="level-stars">${starStr(stars, 3)}</div>
+    `;
+    card.addEventListener("click", () => loadLogicPuzzle(puzzle.id));
+    dom.logicGrid.appendChild(card);
+  });
+}
+
+async function loadLogicPuzzle(puzzleId) {
+  try {
+    const res = await fetch(`${API}/api/logic/${puzzleId}`);
+    state.currentLogic = await res.json();
+  } catch { return; }
+
+  state.logicHintIndex = 0;
+  state.logicAttempts = 0;
+  state.logicSolved = false;
+
+  dom.logicTitle.textContent = `Zagadka ${state.currentLogic.id}: ${state.currentLogic.title}`;
+  dom.logicDesc.textContent = state.currentLogic.description;
+  dom.logicFeedback.textContent = "";
+  dom.logicFeedback.className = "logic-feedback";
+
+  renderLogicPuzzleContent();
+  renderLogicOptions();
+  showScreen("logic");
+}
+
+function renderLogicPuzzleContent() {
+  const puzzle = state.currentLogic;
+  let html = "";
+
+  if (puzzle.type === "sequence") {
+    html += '<div class="puzzle-sequence">';
+    puzzle.sequence.forEach(item => {
+      if (item === null) {
+        html += '<div class="puzzle-item missing">?</div>';
+      } else {
+        html += `<div class="puzzle-item">${item}</div>`;
+      }
+    });
+    html += '</div>';
+  } else if (puzzle.type === "pattern") {
+    html += '<div class="puzzle-sequence">';
+    puzzle.pattern.forEach(item => {
+      if (item === null) {
+        html += '<div class="puzzle-item missing">?</div>';
+      } else {
+        html += `<div class="puzzle-item">${item}</div>`;
+      }
+    });
+    html += '</div>';
+  } else if (puzzle.type === "logic_if") {
+    html += `<div class="puzzle-rule">${esc(puzzle.rule)}</div>`;
+    html += `<div class="puzzle-condition">${esc(puzzle.condition)}</div>`;
+  } else if (puzzle.type === "true_false") {
+    html += `<div class="puzzle-statement">${esc(puzzle.statement)}</div>`;
+  } else if (puzzle.type === "logic_gate") {
+    html += `<div class="puzzle-rule">${esc(puzzle.rule)}</div>`;
+  } else if (puzzle.type === "sort") {
+    html += `<div class="puzzle-statement">Ułóż od najmniejszej do największej:</div>`;
+    html += '<div class="puzzle-sequence">';
+    puzzle.items.forEach(item => {
+      html += `<div class="puzzle-item">${item}</div>`;
+    });
+    html += '</div>';
+  } else if (puzzle.type === "find_path") {
+    html += `<div class="puzzle-statement">${esc(puzzle.question)}</div>`;
+    html += '<div class="puzzle-grid-visual">';
+    puzzle.grid.forEach(row => {
+      html += '<div class="puzzle-grid-row">';
+      row.forEach(cell => {
+        const cls = cell === "⬛" ? "puzzle-grid-cell wall" : "puzzle-grid-cell";
+        html += `<div class="${cls}">${cell === "⬛" ? "" : cell}</div>`;
+      });
+      html += '</div>';
+    });
+    html += '</div>';
+  } else if (puzzle.type === "counting") {
+    html += `<div class="puzzle-statement">${esc(puzzle.question)}</div>`;
+    html += '<div class="puzzle-objects">';
+    puzzle.objects.forEach(obj => {
+      html += `<span class="puzzle-emoji">${obj}</span>`;
+    });
+    html += '</div>';
+  } else if (puzzle.type === "mirror") {
+    html += `<div class="puzzle-statement">${esc(puzzle.question)}</div>`;
+    html += '<div class="puzzle-sequence">';
+    puzzle.pattern.forEach(item => {
+      html += `<div class="puzzle-item">${item}</div>`;
+    });
+    html += '</div>';
+    html += '<div class="puzzle-mirror-arrow">🪞 Lustro 🪞</div>';
+  }
+
+  dom.logicPuzzleArea.innerHTML = html;
+}
+
+function renderLogicOptions() {
+  dom.logicOptions.innerHTML = "";
+  const puzzle = state.currentLogic;
+  puzzle.options.forEach((option, idx) => {
+    const btn = document.createElement("button");
+    btn.className = "logic-option";
+    const displayText = Array.isArray(option) ? option.join(", ") : String(option);
+    btn.textContent = displayText;
+    btn.addEventListener("click", () => checkLogicAnswer(option, btn));
+    dom.logicOptions.appendChild(btn);
+  });
+}
+
+function checkLogicAnswer(selected, btnEl) {
+  if (state.logicSolved) return;
+  state.logicAttempts++;
+
+  const puzzle = state.currentLogic;
+  const answer = puzzle.answer;
+
+  let isCorrect = false;
+  if (Array.isArray(answer) && Array.isArray(selected)) {
+    isCorrect = JSON.stringify(answer) === JSON.stringify(selected);
+  } else {
+    isCorrect = selected === answer;
+  }
+
+  if (isCorrect) {
+    state.logicSolved = true;
+    btnEl.classList.add("correct");
+    dom.logicFeedback.textContent = "✅ Prawidłowo! Świetna robota!";
+    dom.logicFeedback.className = "logic-feedback correct";
+
+    // Stars: 3 for first try, 2 for second, 1 for more
+    let stars = 3;
+    if (state.logicAttempts === 2) stars = 2;
+    if (state.logicAttempts > 2) stars = 1;
+
+    setTimeout(() => onLogicComplete(stars), 800);
+  } else {
+    btnEl.classList.add("wrong");
+    dom.logicFeedback.textContent = "❌ Spróbuj jeszcze raz!";
+    dom.logicFeedback.className = "logic-feedback wrong";
+    setTimeout(() => {
+      btnEl.classList.remove("wrong");
+      if (!state.logicSolved) {
+        dom.logicFeedback.textContent = "";
+        dom.logicFeedback.className = "logic-feedback";
+      }
+    }, 1200);
+  }
+}
+
+function onLogicComplete(stars) {
+  saveLogicProgress(state.currentLogic.id, stars);
+
+  dom.logicModalStars.textContent = starStr(stars, 3);
+  const messages = [
+    "Dobry początek logicznego myślenia! 🤔",
+    "Świetna logika! Prawie ideał! 🎊",
+    "PERFEKCYJNIE! Jesteś mistrzem logiki! 🧠",
+  ];
+  dom.logicModalMessage.textContent = messages[stars - 1] || messages[2];
+  dom.logicExplanation.textContent = state.currentLogic.explanation || "";
+  showModal("logic-success");
+}
+
+function onNextLogic() {
+  hideModal("logic-success");
+  const nextId = state.currentLogic.id + 1;
+  const exists = (state.logicPuzzles || []).find(p => p.id === nextId);
+  if (exists) {
+    loadLogicPuzzle(nextId);
+  } else {
+    showScreen("levels");
+    renderLogicPuzzles();
+  }
+}
+
+function onLogicHint() {
+  const hints = state.currentLogic.hints || [];
+  if (hints.length === 0) {
+    dom.hintText.textContent = "Brak podpowiedzi. Dasz radę!";
+  } else {
+    dom.hintText.textContent = hints[state.logicHintIndex % hints.length];
+    state.logicHintIndex++;
+  }
+  showModal("hint");
+}
+
+async function saveLogicProgress(puzzleId, stars) {
+  try {
+    const res = await fetch(`${API}/api/progress/${encodeURIComponent(state.username)}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ logic_id: puzzleId, logic_stars: stars }),
+    });
+    state.progress = await res.json();
+    updateStarDisplay();
+  } catch (e) { console.error("Zapis nie powiódł się", e); }
+}
+
+// ============ DIPLOMA ============
+function renderDiploma() {
+  if (!dom.diplomaContainer) return;
+  const p = state.progress;
+  const totalLevels = state.levels.length;
+  const totalTyping = state.typingLessons.length;
+  const completedLevels = (p.completed || []).length;
+  const completedTyping = (p.typing_completed || []).length;
+  const totalLogic = (state.logicPuzzles || []).length;
+  const completedLogic = (p.logic_completed || []).length;
+  const totalCodingStars = Object.values(p.stars || {}).reduce((a, b) => a + b, 0);
+  const totalTypingStars = Object.values(p.typing_stars || {}).reduce((a, b) => a + b, 0);
+  const totalLogicStars = Object.values(p.logic_stars || {}).reduce((a, b) => a + b, 0);
+  const allStars = totalCodingStars + totalTypingStars + totalLogicStars;
+  const maxStars = (totalLevels + totalTyping + totalLogic) * 3;
+  const bestWpm = Math.max(0, ...Object.values(p.typing_best_wpm || {}));
+
+  const allDone = completedLevels >= totalLevels && completedTyping >= totalTyping && completedLogic >= totalLogic;
+
+  if (!allDone) {
+    dom.diplomaContainer.innerHTML = `
+      <div class="diploma-lock-message">
+        <h2>🎓 Dyplom</h2>
+        <p>Ukończ wszystkie lekcje, żeby odblokować dyplom!</p>
+        <p style="margin-top:20px">
+          🧩 Kodowanie: <strong>${completedLevels} / ${totalLevels}</strong><br>
+          ⌨️ Pisanie: <strong>${completedTyping} / ${totalTyping}</strong><br>
+          🧠 Logika: <strong>${completedLogic} / ${totalLogic}</strong>
+        </p>
+        <div style="margin-top:20px">
+          <div style="background:#E8E4F8;border-radius:20px;height:20px;max-width:400px;margin:0 auto">
+            <div style="background:linear-gradient(90deg,#6C5CE7,#A29BFE);height:100%;border-radius:20px;width:${Math.round(((completedLevels + completedTyping + completedLogic) / (totalLevels + totalTyping + totalLogic)) * 100)}%;transition:width 0.5s"></div>
+          </div>
+          <p style="margin-top:8px;color:#636E72">${Math.round(((completedLevels + completedTyping + completedLogic) / (totalLevels + totalTyping + totalLogic)) * 100)}% ukończono</p>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  const today = new Date();
+  const dateStr = today.toLocaleDateString("pl-PL", { year: "numeric", month: "long", day: "numeric" });
+
+  dom.diplomaContainer.innerHTML = `
+    <div class="diploma-preview" id="diploma-printable">
+      <div style="font-size:3rem;margin-bottom:10px">🏆</div>
+      <h1>Dyplom Ukończenia</h1>
+      <h2>KidCoder – Nauka Programowania</h2>
+      <p style="font-size:1rem;color:#636E72">Niniejszym zaświadcza się, że</p>
+      <div class="diploma-name">${esc(state.username)}</div>
+      <p style="font-size:1.05rem;color:#636E72">ukończył(a) z powodzeniem wszystkie lekcje programowania i pisania!</p>
+      <div class="diploma-stats">
+        <div class="diploma-stat">
+          <div class="diploma-stat-value">⭐ ${allStars}/${maxStars}</div>
+          <div class="diploma-stat-label">Gwiazdki</div>
+        </div>
+        <div class="diploma-stat">
+          <div class="diploma-stat-value">🧩 ${completedLevels}</div>
+          <div class="diploma-stat-label">Poziomy kodowania</div>
+        </div>
+        <div class="diploma-stat">
+          <div class="diploma-stat-value">⌨️ ${completedTyping}</div>
+          <div class="diploma-stat-label">Lekcje pisania</div>
+        </div>
+        <div class="diploma-stat">
+          <div class="diploma-stat-value">🧠 ${completedLogic}</div>
+          <div class="diploma-stat-label">Zagadki logiczne</div>
+        </div>
+        ${bestWpm ? `<div class="diploma-stat"><div class="diploma-stat-value">🚀 ${bestWpm}</div><div class="diploma-stat-label">Najlepsze WPM</div></div>` : ""}
+      </div>
+      <div class="diploma-date">${dateStr}</div>
+    </div>
+    <button class="btn btn-primary btn-lg btn-print" onclick="printDiploma()">🖨️ Drukuj dyplom</button>
+  `;
+}
+
+function printDiploma() {
+  const content = document.getElementById("diploma-printable");
+  if (!content) return;
+  const printDiv = document.createElement("div");
+  printDiv.className = "diploma-print";
+  printDiv.innerHTML = content.outerHTML;
+  document.body.appendChild(printDiv);
+  window.print();
+  document.body.removeChild(printDiv);
+}
+
+// ============ LOGOUT ============
+function onLogout() {
+  // Stop any active game
+  stopExecution();
+  stopTyping();
+  stopCarGame();
+
+  // Reset state
+  state.username = "";
+  state.progress = { completed: [], stars: {}, current_level: 1,
+                     typing_completed: [], typing_stars: {}, typing_best_wpm: {},
+                     logic_completed: [], logic_stars: {} };
+  state.levels = [];
+  state.typingLessons = [];
+  state.logicPuzzles = [];
+  state.currentLevel = null;
+  state.currentTyping = null;
+  state.currentLogic = null;
+  state.program = [];
+
+  // Reset UI
+  dom.usernameInput.value = "";
+  dom.userDisplay.textContent = "👤 Gracz";
+  dom.totalStars.textContent = "⭐ 0";
+
+  // Reset tabs to coding
+  dom.tabBtns.forEach(b => b.classList.remove("active"));
+  dom.tabBtns[0]?.classList.add("active");
+  $$(".tab-content").forEach(tc => tc.classList.remove("active"));
+  $("#tab-coding")?.classList.add("active");
+
+  showScreen("login");
+}

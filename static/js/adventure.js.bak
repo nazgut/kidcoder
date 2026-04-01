@@ -1,0 +1,724 @@
+/* ==========================================================
+   KidCoder – Adventure Module (v3 – UNIQUE MINI-GAMES)
+   Each stop has its own interactive game that tests coding
+   skills the kid learned: code tracing, debugging, sorting
+   code blocks, true/false knowledge, variable tracking.
+   NO redirects to quiz/logic — everything plays inline.
+   ========================================================== */
+
+/* ---------- Game type legend ----------
+   code_output  → Show code, pick what it prints
+   bug_hunt     → Find the buggy line in code
+   true_false   → Quick Prawda/Fałsz statements
+   sort_code    → Click code blocks in correct order
+   var_tracker  → Trace variable value through code
+   ---------------------------------------- */
+
+const ADVENTURE_WORLDS = [
+  {
+    id: 1, name: "Kraina Kodu", icon: "🌲", theme: "forest",
+    subtitle: "Twoja pierwsza podróż w świat programowania!",
+    stops: [
+      {
+        id: 1, game: "code_output", label: "Pierwszy print", coins: 10, icon: "🖨️",
+        code: 'x = 5\nprint(x + 3)',
+        question: "Co wypisze ten kod?",
+        options: ["53", "8", "x+3", "Błąd!"],
+        correct: 1,
+        explanation: "x = 5, więc x + 3 = 8. Python dodaje liczby, nie skleja tekst!"
+      },
+      {
+        id: 2, game: "bug_hunt", label: "Brakujący nawias", coins: 10, icon: "🐛",
+        lines: [
+          'print("Cześć"',
+          'x = 10',
+          'print(x)',
+        ],
+        bugLine: 0,
+        hint: "Sprawdź, czy każdy nawias jest zamknięty...",
+        explanation: 'W linii 1 brakuje zamykającego nawiasu ) → print("Cześć")'
+      },
+      {
+        id: 3, game: "true_false", label: "Fakty o kodzie", coins: 10, icon: "✅",
+        statements: [
+          { text: "Zmienna może przechowywać liczbę", answer: true },
+          { text: "Python zaczyna numerować od 1", answer: false },
+          { text: "print() wyświetla tekst na ekranie", answer: true },
+        ],
+        explanation: "Python numeruje od 0, nie od 1! To bardzo ważna zasada."
+      },
+      {
+        id: 4, game: "sort_code", label: "Ułóż program", coins: 15, icon: "🧱",
+        blocks: [
+          "x = 10",
+          "y = 20",
+          "suma = x + y",
+          "print(suma)",
+        ],
+        explanation: "Najpierw tworzymy zmienne, potem liczymy, na końcu wyświetlamy!"
+      },
+      {
+        id: 5, game: "var_tracker", label: "Śledź zmienną", coins: 15, icon: "🔍",
+        code: 'x = 2\nx = x + 3\nx = x * 2',
+        variable: "x",
+        steps: [
+          { line: "x = 2", value: 2 },
+          { line: "x = x + 3", value: 5 },
+          { line: "x = x * 2", value: 10 },
+        ],
+        question: "Jaka jest końcowa wartość x?",
+        options: ["4", "7", "10", "12"],
+        correct: 2,
+        explanation: "x = 2 → x = 2+3 = 5 → x = 5×2 = 10"
+      },
+    ],
+  },
+  {
+    id: 2, name: "Dolina Algorytmów", icon: "🏔️", theme: "mountain",
+    subtitle: "Algorytmy i pętle czekają na Ciebie!",
+    stops: [
+      {
+        id: 6, game: "code_output", label: "Pętla FOR", coins: 15, icon: "🔄",
+        code: 'for i in range(3):\n    print(i)',
+        question: "Co wypisze ten kod? (każda liczba w nowej linii)",
+        options: ["1 2 3", "0 1 2", "0 1 2 3", "3 3 3"],
+        correct: 1,
+        explanation: "range(3) daje 0, 1, 2 — zawsze zaczyna od zera!"
+      },
+      {
+        id: 7, game: "bug_hunt", label: "Zły zakres", coins: 15, icon: "🐛",
+        lines: [
+          'owoce = ["jabłko", "banan", "gruszka"]',
+          'for i in range(4):',
+          '    print(owoce[i])',
+        ],
+        bugLine: 1,
+        hint: "Ile owoców jest w liście? A ile razy pętla próbuje czytać?",
+        explanation: "Lista ma 3 elementy (0-2), ale range(4) próbuje odczytać indeks 3 — błąd!"
+      },
+      {
+        id: 8, game: "sort_code", label: "Zbuduj pętlę", coins: 15, icon: "🧱",
+        blocks: [
+          "wynik = []",
+          "for i in range(5):",
+          "    if i % 2 == 0:",
+          "        wynik.append(i)",
+          "print(wynik)",
+        ],
+        explanation: "Tworzymy listę → iterujemy → filtrujemy parzyste → dodajemy → wyświetlamy!"
+      },
+      {
+        id: 9, game: "true_false", label: "Prawda o pętlach", coins: 20, icon: "✅",
+        statements: [
+          { text: "Pętla FOR powtarza kod określoną liczbę razy", answer: true },
+          { text: "Lista w Pythonie zaczyna się od indeksu 1", answer: false },
+          { text: "range(5) generuje liczby 0, 1, 2, 3, 4", answer: true },
+          { text: "Warunek IF zawsze wymaga ELSE", answer: false },
+        ],
+        explanation: "Listy zaczynają od indeksu 0, a ELSE jest opcjonalny!"
+      },
+      {
+        id: 10, game: "var_tracker", label: "Suma w pętli", coins: 20, icon: "🔍",
+        code: 'suma = 0\nfor i in range(4):\n    suma = suma + i',
+        variable: "suma",
+        steps: [
+          { line: "suma = 0", value: 0 },
+          { line: "i=0 → suma = 0 + 0", value: 0 },
+          { line: "i=1 → suma = 0 + 1", value: 1 },
+          { line: "i=2 → suma = 1 + 2", value: 3 },
+          { line: "i=3 → suma = 3 + 3", value: 6 },
+        ],
+        question: "Jaka jest końcowa wartość suma?",
+        options: ["3", "4", "6", "10"],
+        correct: 2,
+        explanation: "suma = 0+0+1+2+3 = 6. Pamiętaj: range(4) → 0,1,2,3!"
+      },
+    ],
+  },
+  {
+    id: 3, name: "Zamek Mistrza", icon: "🏰", theme: "castle",
+    subtitle: "Finałowe wyzwania dla prawdziwych koderów!",
+    stops: [
+      {
+        id: 11, game: "code_output", label: "Warunek IF", coins: 20, icon: "⚡",
+        code: 'x = 15\nif x > 10:\n    print("duży")\nelse:\n    print("mały")',
+        question: "Co wypisze ten kod?",
+        options: ["duży", "mały", "15", "Nic — błąd!"],
+        correct: 0,
+        explanation: 'x = 15, a 15 > 10 to prawda, więc wypisze "duży".'
+      },
+      {
+        id: 12, game: "bug_hunt", label: "Błąd w funkcji", coins: 20, icon: "🐛",
+        lines: [
+          'def dodaj(a, b):',
+          '    wynik = a + b',
+          '    print(wynik)',
+          'x = dodaj(3, 4)',
+          'print(x)',
+        ],
+        bugLine: 2,
+        hint: "Co zwraca funkcja, gdy nie ma return? Czym będzie x?",
+        explanation: 'Linia 3: print(wynik) powinno być return wynik — bez tego x = None!'
+      },
+      {
+        id: 13, game: "sort_code", label: "Zbuduj funkcję", coins: 20, icon: "🧱",
+        blocks: [
+          "def powitanie(imie):",
+          '    tekst = "Cześć, " + imie + "!"',
+          "    return tekst",
+          'wiadomosc = powitanie("Ewa")',
+          "print(wiadomosc)",
+        ],
+        explanation: "def → tworzymy tekst → zwracamy → wywołujemy → wyświetlamy!"
+      },
+      {
+        id: 14, game: "true_false", label: "Mistrz kodu", coins: 25, icon: "✅",
+        statements: [
+          { text: "Funkcja może zwracać wartość przez return", answer: true },
+          { text: "W Pythonie 10 / 3 daje dokładnie 3", answer: false },
+          { text: "Lista może przechowywać różne typy danych", answer: true },
+          { text: "Operator == porównuje dwie wartości", answer: true },
+          { text: "Pętla while zawsze się kończy sama", answer: false },
+        ],
+        explanation: "10/3 = 3.333... a pętla while może się zapętlić na zawsze!"
+      },
+      {
+        id: 15, game: "code_output", label: "Wielki Finał!", coins: 30, icon: "🏆",
+        code: 'def f(n):\n    if n <= 1:\n        return n\n    return f(n-1) + f(n-2)\n\nprint(f(6))',
+        question: "Co wypisze ten tajemniczy kod?",
+        options: ["5", "6", "8", "13"],
+        correct: 2,
+        explanation: "To ciąg Fibonacciego! f(0)=0, f(1)=1, f(2)=1, f(3)=2, f(4)=3, f(5)=5, f(6)=8 🎉"
+      },
+    ],
+  },
+];
+
+/* ============ LOCAL GAME STATE ============ */
+let advGameAttempts = 0;
+let advTFIndex = 0;
+let advTFWrong = 0;
+let advSortPlaced = [];
+let advSortShuffled = [];
+
+/* ============ HELPERS ============ */
+function adventureProgress() {
+  if (!state.progress.adventure_completed) state.progress.adventure_completed = [];
+  return state.progress.adventure_completed;
+}
+
+function adventureCoinsTotal() {
+  const completed = adventureProgress();
+  let coins = 0;
+  ADVENTURE_WORLDS.forEach(w => {
+    w.stops.forEach(s => {
+      if (completed.includes(s.id)) coins += s.coins;
+    });
+  });
+  return coins;
+}
+
+function advShuffleArray(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+/* ============ WORLD SELECTION (TAB VIEW) ============ */
+function renderAdventureMap() {
+  if (!dom.adventureGrid) return;
+  dom.adventureGrid.innerHTML = "";
+  const completed = adventureProgress();
+
+  ADVENTURE_WORLDS.forEach(world => {
+    const worldDiv = document.createElement("div");
+    worldDiv.className = `adventure-world-card world-${world.id}`;
+
+    const doneCount = world.stops.filter(s => completed.includes(s.id)).length;
+    const total = world.stops.length;
+    const pct = total > 0 ? Math.round((doneCount / total) * 100) : 0;
+    const worldCoins = world.stops.filter(s => completed.includes(s.id)).reduce((sum, s) => sum + s.coins, 0);
+
+    worldDiv.innerHTML = `
+      <div class="adventure-world-card-banner">
+        <span class="adventure-world-icon">${world.icon}</span>
+      </div>
+      <div class="adventure-world-card-body">
+        <div class="adventure-world-name">${esc(world.name)}</div>
+        <div class="adventure-world-subtitle">${esc(world.subtitle)}</div>
+        <div class="adventure-world-progress">
+          <div class="adventure-progress-bar">
+            <div class="adventure-progress-fill" style="width:${pct}%"></div>
+          </div>
+          <span>${doneCount}/${total}</span>
+        </div>
+        ${worldCoins > 0 ? `<div class="adventure-world-coins">🪙 ${worldCoins} monet</div>` : ""}
+      </div>
+    `;
+    worldDiv.addEventListener("click", () => enterAdventureWorld(world.id));
+    dom.adventureGrid.appendChild(worldDiv);
+  });
+
+  if (dom.adventureCoinsTotal) dom.adventureCoinsTotal.textContent = adventureCoinsTotal();
+}
+
+/* ============ ENTER WORLD → PATH VIEW ============ */
+function enterAdventureWorld(worldId) {
+  const world = ADVENTURE_WORLDS.find(w => w.id === worldId);
+  if (!world) return;
+  state.adventureWorld = world;
+  state.adventureActive = true;
+
+  dom.adventureTitle.textContent = world.icon + " " + world.name;
+  if (dom.adventureCoins) dom.adventureCoins.textContent = "🪙 " + adventureCoinsTotal();
+  if (dom.adventureBannerBg) {
+    dom.adventureBannerBg.className = "adventure-world-banner-bg";
+    if (world.id === 2) dom.adventureBannerBg.classList.add("world-2");
+    if (world.id === 3) dom.adventureBannerBg.classList.add("world-3");
+  }
+  if (dom.adventureBannerIcon) dom.adventureBannerIcon.textContent = world.icon;
+  if (dom.adventureBannerTitle) dom.adventureBannerTitle.textContent = world.name;
+
+  // Ensure path visible, game hidden
+  if (dom.adventurePathContainer) dom.adventurePathContainer.style.display = "";
+  if (dom.adventureGameArea) dom.adventureGameArea.style.display = "none";
+
+  renderAdventurePath();
+  showScreen("adventure");
+}
+
+/* ============ RENDER PATH WITH STOPS ============ */
+function renderAdventurePath() {
+  const pathEl = dom.adventurePath;
+  if (!pathEl) return;
+  const world = state.adventureWorld;
+  if (!world) return;
+  const stops = world.stops;
+  const completed = adventureProgress();
+
+  pathEl.innerHTML = "";
+  let playerPlaced = false;
+
+  const gameLabels = {
+    code_output: "🖥️ Kod",
+    bug_hunt: "🐛 Szukaj buga",
+    true_false: "✅ Prawda/Fałsz",
+    sort_code: "🧱 Ułóż kod",
+    var_tracker: "🔍 Śledź zmienną",
+  };
+
+  stops.forEach((stop, i) => {
+    const done = completed.includes(stop.id);
+    const unlocked = i === 0 || completed.includes(stops[i - 1].id);
+    const statusClass = done ? "completed" : unlocked ? "unlocked" : "locked";
+
+    if (i > 0) {
+      const connDone = completed.includes(stops[i - 1].id);
+      const connector = document.createElement("div");
+      connector.className = "adventure-stop-connector" + (connDone ? " done" : "");
+      pathEl.appendChild(connector);
+    }
+
+    const stopEl = document.createElement("div");
+    stopEl.className = `adventure-stop ${statusClass}`;
+
+    const showPlayer = unlocked && !done && !playerPlaced;
+    if (showPlayer) playerPlaced = true;
+
+    stopEl.innerHTML = `
+      <div class="adventure-stop-node ${statusClass}">
+        ${showPlayer ? '<div class="adventure-player-marker">🧑‍💻</div>' : ""}
+        <span>${done ? "✓" : (stop.icon || (i + 1))}</span>
+      </div>
+      <div class="adventure-stop-info">
+        <div class="adventure-stop-label">${esc(stop.label)}</div>
+        <div class="adventure-stop-type">
+          ${gameLabels[stop.game] || "🎮 Gra"}
+          <span class="adventure-stop-coins">${done ? "✅" : "🪙 " + stop.coins}</span>
+        </div>
+      </div>
+    `;
+
+    if (unlocked && !done) {
+      stopEl.querySelector(".adventure-stop-node").addEventListener("click", () => startAdventureChallenge(stop));
+      stopEl.querySelector(".adventure-stop-info").addEventListener("click", () => startAdventureChallenge(stop));
+    } else if (done) {
+      stopEl.addEventListener("click", () => {
+        if (dom.adventureMessage) {
+          dom.adventureMessage.textContent = "✅ Już ukończone! (+" + stop.coins + " monet)";
+          dom.adventureMessage.style.color = "#00B894";
+          setTimeout(() => { dom.adventureMessage.textContent = ""; }, 2000);
+        }
+      });
+    }
+
+    pathEl.appendChild(stopEl);
+  });
+}
+
+/* ============ START MINI-GAME ============ */
+function startAdventureChallenge(stop) {
+  state.adventureCurrentStop = stop;
+  advGameAttempts = 0;
+
+  // Switch view: path → game
+  if (dom.adventurePathContainer) dom.adventurePathContainer.style.display = "none";
+  if (dom.adventureGameArea) dom.adventureGameArea.style.display = "block";
+
+  // Header
+  dom.adventureGameIcon.textContent = stop.icon;
+  dom.adventureGameTitle.textContent = stop.label;
+  dom.adventureGameCoinsBadge.textContent = "🪙 " + stop.coins;
+
+  // Clear previous
+  dom.adventureGameQuestion.textContent = "";
+  dom.adventureGameCode.style.display = "none";
+  dom.adventureGameCode.textContent = "";
+  dom.adventureGameContent.innerHTML = "";
+  dom.adventureGameFeedback.textContent = "";
+  dom.adventureGameFeedback.className = "adventure-game-feedback";
+
+  switch (stop.game) {
+    case "code_output": renderCodeOutputGame(stop); break;
+    case "bug_hunt":    renderBugHuntGame(stop);    break;
+    case "true_false":  renderTrueFalseGame(stop);  break;
+    case "sort_code":   renderSortCodeGame(stop);   break;
+    case "var_tracker": renderVarTrackerGame(stop);  break;
+  }
+}
+
+/* ============ GAME: CODE OUTPUT ============ */
+function renderCodeOutputGame(stop) {
+  dom.adventureGameQuestion.textContent = stop.question;
+  dom.adventureGameCode.textContent = stop.code;
+  dom.adventureGameCode.style.display = "block";
+
+  const content = dom.adventureGameContent;
+  content.className = "adventure-game-content adv-options-grid";
+
+  stop.options.forEach((opt, i) => {
+    const btn = document.createElement("button");
+    btn.className = "adv-option-btn";
+    btn.textContent = opt;
+    btn.addEventListener("click", () => checkAdvAnswer(i, stop.correct, btn, stop));
+    content.appendChild(btn);
+  });
+}
+
+/* ============ GAME: BUG HUNT ============ */
+function renderBugHuntGame(stop) {
+  dom.adventureGameQuestion.textContent = "🐛 Znajdź linię z błędem! Kliknij podejrzaną linię kodu.";
+  dom.adventureGameFeedback.textContent = "💡 " + (stop.hint || "");
+  dom.adventureGameFeedback.className = "adventure-game-feedback adv-hint";
+
+  const content = dom.adventureGameContent;
+  content.className = "adventure-game-content adv-bug-hunt";
+
+  stop.lines.forEach((line, i) => {
+    const row = document.createElement("div");
+    row.className = "adv-code-line";
+    row.innerHTML = `<span class="adv-line-num">${i + 1}</span><code>${esc(line)}</code>`;
+    row.addEventListener("click", () => {
+      if (row.classList.contains("adv-disabled")) return;
+      advGameAttempts++;
+      if (i === stop.bugLine) {
+        row.classList.add("adv-bug-found");
+        content.querySelectorAll(".adv-code-line").forEach(r => r.classList.add("adv-disabled"));
+        dom.adventureGameFeedback.textContent = "✅ " + stop.explanation;
+        dom.adventureGameFeedback.className = "adventure-game-feedback adv-correct";
+        setTimeout(() => onAdventureMiniGameWin(), 1500);
+      } else {
+        row.classList.add("adv-not-bug");
+        setTimeout(() => row.classList.remove("adv-not-bug"), 600);
+        dom.adventureGameFeedback.textContent = "❌ To nie ta linia... szukaj dalej!";
+        dom.adventureGameFeedback.className = "adventure-game-feedback adv-wrong";
+      }
+    });
+    content.appendChild(row);
+  });
+}
+
+/* ============ GAME: TRUE / FALSE ============ */
+function renderTrueFalseGame(stop) {
+  advTFIndex = 0;
+  advTFWrong = 0;
+  dom.adventureGameQuestion.textContent = "Prawda czy Fałsz? (" + stop.statements.length + " pytań)";
+  renderTFStatement(stop);
+}
+
+function renderTFStatement(stop) {
+  const stmt = stop.statements[advTFIndex];
+  const content = dom.adventureGameContent;
+  content.innerHTML = "";
+  content.className = "adventure-game-content adv-tf-game";
+
+  // Progress dots
+  const dots = document.createElement("div");
+  dots.className = "adv-tf-dots";
+  stop.statements.forEach((_, i) => {
+    const d = document.createElement("span");
+    d.className = "adv-tf-dot" + (i < advTFIndex ? " done" : i === advTFIndex ? " current" : "");
+    dots.appendChild(d);
+  });
+  content.appendChild(dots);
+
+  // Statement card
+  const card = document.createElement("div");
+  card.className = "adv-tf-statement";
+  card.textContent = stmt.text;
+  content.appendChild(card);
+
+  // Buttons
+  const btns = document.createElement("div");
+  btns.className = "adv-tf-buttons";
+  const btnT = document.createElement("button");
+  btnT.className = "adv-tf-btn adv-tf-true";
+  btnT.textContent = "✅ Prawda";
+  btnT.addEventListener("click", () => checkTFAnswer(true, stop));
+  const btnF = document.createElement("button");
+  btnF.className = "adv-tf-btn adv-tf-false";
+  btnF.textContent = "❌ Fałsz";
+  btnF.addEventListener("click", () => checkTFAnswer(false, stop));
+  btns.appendChild(btnT);
+  btns.appendChild(btnF);
+  content.appendChild(btns);
+
+  dom.adventureGameFeedback.textContent = "";
+  dom.adventureGameFeedback.className = "adventure-game-feedback";
+}
+
+function checkTFAnswer(answer, stop) {
+  const stmt = stop.statements[advTFIndex];
+  if (answer !== stmt.answer) {
+    advTFWrong++;
+    dom.adventureGameFeedback.textContent = "❌ Źle! Odpowiedź: " + (stmt.answer ? "Prawda" : "Fałsz");
+    dom.adventureGameFeedback.className = "adventure-game-feedback adv-wrong";
+  } else {
+    dom.adventureGameFeedback.textContent = "✅ Dobrze!";
+    dom.adventureGameFeedback.className = "adventure-game-feedback adv-correct";
+  }
+  advTFIndex++;
+  if (advTFIndex >= stop.statements.length) {
+    advGameAttempts = advTFWrong;
+    setTimeout(() => {
+      dom.adventureGameFeedback.textContent = "✅ " + stop.explanation;
+      dom.adventureGameFeedback.className = "adventure-game-feedback adv-correct";
+      setTimeout(() => onAdventureMiniGameWin(), 1200);
+    }, 800);
+  } else {
+    setTimeout(() => renderTFStatement(stop), 900);
+  }
+}
+
+/* ============ GAME: SORT CODE ============ */
+function renderSortCodeGame(stop) {
+  advSortPlaced = [];
+  advSortShuffled = stop.blocks.map((text, i) => ({ text, idx: i }));
+  advShuffleArray(advSortShuffled);
+
+  dom.adventureGameQuestion.textContent = "🧱 Klikaj bloki kodu we właściwej kolejności!";
+  dom.adventureGameFeedback.textContent = "";
+  dom.adventureGameFeedback.className = "adventure-game-feedback";
+  renderSortUI(stop);
+}
+
+function renderSortUI(stop) {
+  const content = dom.adventureGameContent;
+  content.innerHTML = "";
+  content.className = "adventure-game-content adv-sort-game";
+
+  // Target — placed blocks
+  const target = document.createElement("div");
+  target.className = "adv-sort-target";
+  if (advSortPlaced.length === 0) {
+    const ph = document.createElement("div");
+    ph.className = "adv-sort-placeholder";
+    ph.textContent = "👆 Klikaj bloki poniżej w odpowiedniej kolejności";
+    target.appendChild(ph);
+  }
+  advSortPlaced.forEach((block, i) => {
+    const el = document.createElement("div");
+    el.className = "adv-sort-block adv-placed";
+    el.innerHTML = `<span class="adv-sort-num">${i + 1}</span><code>${esc(block.text)}</code>`;
+    el.addEventListener("click", () => {
+      advSortPlaced.splice(i);
+      renderSortUI(stop);
+    });
+    target.appendChild(el);
+  });
+  content.appendChild(target);
+
+  // Pool — available blocks
+  const placedIdxs = new Set(advSortPlaced.map(b => b.idx));
+  const available = advSortShuffled.filter(b => !placedIdxs.has(b.idx));
+  if (available.length > 0) {
+    const pool = document.createElement("div");
+    pool.className = "adv-sort-pool";
+    available.forEach(block => {
+      const el = document.createElement("div");
+      el.className = "adv-sort-block adv-available";
+      el.innerHTML = `<code>${esc(block.text)}</code>`;
+      el.addEventListener("click", () => {
+        advSortPlaced.push(block);
+        renderSortUI(stop);
+        if (advSortPlaced.length === stop.blocks.length) {
+          setTimeout(() => checkSortOrder(stop), 300);
+        }
+      });
+      pool.appendChild(el);
+    });
+    content.appendChild(pool);
+  }
+}
+
+function checkSortOrder(stop) {
+  advGameAttempts++;
+  const correct = advSortPlaced.every((block, i) => block.idx === i);
+  if (correct) {
+    dom.adventureGameContent.querySelectorAll(".adv-placed").forEach(el => el.classList.add("adv-sort-correct"));
+    dom.adventureGameFeedback.textContent = "✅ " + stop.explanation;
+    dom.adventureGameFeedback.className = "adventure-game-feedback adv-correct";
+    setTimeout(() => onAdventureMiniGameWin(), 1500);
+  } else {
+    const target = dom.adventureGameContent.querySelector(".adv-sort-target");
+    if (target) { target.classList.add("adv-shake"); setTimeout(() => target.classList.remove("adv-shake"), 600); }
+    dom.adventureGameFeedback.textContent = "❌ Kolejność niepoprawna — spróbuj jeszcze raz!";
+    dom.adventureGameFeedback.className = "adventure-game-feedback adv-wrong";
+    setTimeout(() => { advSortPlaced = []; renderSortUI(stop); dom.adventureGameFeedback.textContent = ""; }, 1200);
+  }
+}
+
+/* ============ GAME: VAR TRACKER ============ */
+function renderVarTrackerGame(stop) {
+  dom.adventureGameQuestion.textContent = stop.question;
+  dom.adventureGameCode.textContent = stop.code;
+  dom.adventureGameCode.style.display = "block";
+  dom.adventureGameFeedback.textContent = "💡 Wykonaj kod w głowie krok po kroku!";
+  dom.adventureGameFeedback.className = "adventure-game-feedback adv-hint";
+
+  const content = dom.adventureGameContent;
+  content.innerHTML = "";
+  content.className = "adventure-game-content adv-var-tracker";
+
+  const badge = document.createElement("div");
+  badge.className = "adv-var-badge";
+  badge.textContent = "🔍 Śledź: " + stop.variable;
+  content.appendChild(badge);
+
+  const opts = document.createElement("div");
+  opts.className = "adv-options-grid";
+  stop.options.forEach((opt, i) => {
+    const btn = document.createElement("button");
+    btn.className = "adv-option-btn";
+    btn.textContent = stop.variable + " = " + opt;
+    btn.addEventListener("click", () => {
+      checkAdvAnswer(i, stop.correct, btn, stop);
+      if (i === stop.correct) showVarSteps(stop);
+    });
+    opts.appendChild(btn);
+  });
+  content.appendChild(opts);
+}
+
+function showVarSteps(stop) {
+  const div = document.createElement("div");
+  div.className = "adv-var-steps";
+  stop.steps.forEach(s => {
+    const row = document.createElement("div");
+    row.className = "adv-var-step";
+    row.innerHTML = `<code>${esc(s.line)}</code><span class="adv-var-arrow">→</span><strong>${stop.variable} = ${s.value}</strong>`;
+    div.appendChild(row);
+  });
+  dom.adventureGameFeedback.appendChild(div);
+}
+
+/* ============ SHARED ANSWER CHECKER ============ */
+function checkAdvAnswer(selected, correct, btn, stop) {
+  if (btn.classList.contains("adv-disabled")) return;
+  advGameAttempts++;
+  if (selected === correct) {
+    btn.classList.add("adv-correct-btn");
+    dom.adventureGameContent.querySelectorAll(".adv-option-btn").forEach(b => b.classList.add("adv-disabled"));
+    dom.adventureGameFeedback.textContent = "✅ " + stop.explanation;
+    dom.adventureGameFeedback.className = "adventure-game-feedback adv-correct";
+    setTimeout(() => onAdventureMiniGameWin(), 1500);
+  } else {
+    btn.classList.add("adv-wrong-btn");
+    btn.classList.add("adv-disabled");
+    dom.adventureGameFeedback.textContent = "❌ Nie tym razem... spróbuj inną odpowiedź!";
+    dom.adventureGameFeedback.className = "adventure-game-feedback adv-wrong";
+  }
+}
+
+/* ============ WIN HANDLER ============ */
+function onAdventureMiniGameWin() {
+  const stop = state.adventureCurrentStop;
+  if (!stop) return;
+
+  const completed = adventureProgress();
+  if (!completed.includes(stop.id)) completed.push(stop.id);
+
+  const stars = advGameAttempts <= 0 ? 3 : advGameAttempts === 1 ? 2 : 1;
+  saveAdventureProgress(stop.id, stars);
+
+  if (dom.adventureCompleteStars) dom.adventureCompleteStars.textContent = starStr(stars, 3);
+  if (dom.adventureCompleteMsg) {
+    const msgs = { 1: "Dobra robota!", 2: "Świetna robota!", 3: "Perfekcyjnie! 🌟" };
+    dom.adventureCompleteMsg.textContent = (msgs[stars] || "Brawo!") + " +" + stop.coins + " 🪙";
+  }
+  showModal("adventure-complete");
+}
+
+async function saveAdventureProgress(stopId, stars) {
+  try {
+    const res = await fetch(`${API}/api/progress/${encodeURIComponent(state.username)}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ adventure_id: stopId, adventure_stars: stars }),
+    });
+    state.progress = await res.json();
+    updateStarDisplay();
+  } catch (e) { console.error("Adventure save failed", e); }
+}
+
+/* ============ NAVIGATION ============ */
+function onAdventureBack() {
+  if (state.adventureCurrentStop) {
+    exitAdventureGame();
+    renderAdventurePath();
+  } else if (state.adventureWorld) {
+    stopAdventure();
+    showScreen("levels");
+    renderAdventureMap();
+  } else {
+    showScreen("levels");
+  }
+}
+
+function exitAdventureGame() {
+  state.adventureCurrentStop = null;
+  if (dom.adventureGameArea) dom.adventureGameArea.style.display = "none";
+  if (dom.adventurePathContainer) dom.adventurePathContainer.style.display = "";
+}
+
+function onAdventureNext() {
+  hideModal("adventure-complete");
+  exitAdventureGame();
+  if (state.adventureWorld) {
+    renderAdventurePath();
+    if (dom.adventureCoins) dom.adventureCoins.textContent = "🪙 " + adventureCoinsTotal();
+    if (dom.adventureCoinsTotal) dom.adventureCoinsTotal.textContent = adventureCoinsTotal();
+  }
+}
+
+function stopAdventure() {
+  state.adventureActive = false;
+  state.adventureWorld = null;
+  state.adventureCurrentStop = null;
+}
+
+/* Legacy stubs — quiz.js and logic.js still call these safely */
+function checkAdventureReturn() { return false; }
+function onAdventureTaskComplete() {}
