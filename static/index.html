@@ -59,6 +59,7 @@
     <button class="tab-btn" data-tab="memory">🃏 Memory</button>
     <button class="tab-btn" data-tab="adventure">🗺️ Przygoda</button>
     <button class="tab-btn" data-tab="thinking">🤖 Myślenie</button>
+    <button class="tab-btn" data-tab="sudoku">🔢 Sudoku</button>
     <button class="tab-btn" data-tab="diploma">🎓 Dyplom</button>
   </div>
   <div id="tab-coding" class="tab-content active">
@@ -115,6 +116,16 @@
         <p class="tab-hero-desc">Naucz się myśleć jak programista! Sekwencje, wzorce, warunki i więcej 🧩</p>
       </div>
       <div id="thinking-grid" class="levels-grid thinking-levels-grid"></div>
+    </div>
+  </div>
+  <div id="tab-sudoku" class="tab-content">
+    <div class="levels-container sudoku-tab-container">
+      <div class="tab-hero sudoku-hero">
+        <div class="tab-hero-icon">🔢</div>
+        <h2 class="tab-hero-title">Sudoku dla dzieci</h2>
+        <p class="tab-hero-desc">Wypełnij siatkę liczbami – każda liczba może wystąpić tylko raz w wierszu, kolumnie i bloku!</p>
+      </div>
+      <div id="sudoku-grid" class="levels-grid sudoku-levels-grid"></div>
     </div>
   </div>
   <div id="tab-diploma" class="tab-content">
@@ -312,6 +323,39 @@
   </div>
 </div>
 
+<!-- EKRAN SUDOKU -->
+<div id="screen-sudoku" class="screen">
+  <header class="top-bar sudoku-top-bar">
+    <button id="btn-back-sudoku" class="btn btn-back" title="Wróć">🔙 Wróć</button>
+    <div class="level-info">
+      <span id="sudoku-title" class="level-title-bar">Sudoku</span>
+    </div>
+    <div class="top-bar-right">
+      <button id="btn-sudoku-hint" class="btn btn-action">💡 Podpowiedź</button>
+      <button id="btn-sudoku-check" class="btn btn-action">✅ Sprawdź</button>
+    </div>
+  </header>
+  <div class="logic-layout sudoku-game-bg">
+    <div class="logic-main sudoku-main">
+      <div id="sudoku-board" class="sudoku-board"></div>
+      <div id="sudoku-feedback" class="sudoku-feedback"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL SUKCESU SUDOKU -->
+<div id="modal-sudoku-success" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-stars" id="sudoku-modal-stars"></div>
+    <h2>🔢 Brawo!</h2>
+    <p id="sudoku-modal-message">Rozwiązałeś sudoku!</p>
+    <div class="modal-buttons">
+      <button id="btn-next-sudoku" class="btn btn-primary">Następne sudoku ➡</button>
+      <button id="btn-sudoku-to-list" class="btn btn-secondary">📋 Lista</button>
+    </div>
+  </div>
+</div>
+
 <!-- EKRAN MYŚLENIA KOMPUTEROWEGO -->
 <div id="screen-thinking" class="screen">
   <header class="top-bar thinking-top-bar">
@@ -491,6 +535,7 @@
 <script src="js/adventure.js"></script>
 <script src="js/thinking.js"></script>
 <script src="js/crossword.js"></script>
+<script src="js/sudoku.js"></script>
 <script src="js/diploma.js"></script>
 </body>
 </html>

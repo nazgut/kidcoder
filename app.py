@@ -5,7 +5,7 @@ import os
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 
-from game_data import LEVELS, LOGIC_PUZZLES, TYPING_LESSONS, QUIZ_QUESTIONS, MEMORY_PAIRS, THINKING_EXERCISES, CROSSWORD_PUZZLES
+from game_data import LEVELS, LOGIC_PUZZLES, TYPING_LESSONS, QUIZ_QUESTIONS, MEMORY_PAIRS, THINKING_EXERCISES, CROSSWORD_PUZZLES, SUDOKU_PUZZLES
 
 app = Flask(__name__, static_folder="static", static_url_path="")
 CORS(app)
@@ -34,7 +34,8 @@ def _load_progress(username: str) -> dict:
             "memory_completed": [], "memory_stars": {},
             "adventure_completed": [], "adventure_stars": {},
             "thinking_completed": [], "thinking_stars": {},
-            "crossword_completed": [], "crossword_stars": {}}
+            "crossword_completed": [], "crossword_stars": {},
+            "sudoku_completed": [], "sudoku_stars": {}}
 
 
 def _save_progress(username: str, data: dict):
@@ -143,6 +144,22 @@ def get_crossword_puzzle(puzzle_id):
         if c["id"] == puzzle_id:
             return jsonify(c)
     return jsonify({"error": "Nie znaleziono krzyżówki"}), 404
+
+
+@app.route("/api/sudoku", methods=["GET"])
+def get_sudoku_puzzles():
+    """Return sudoku puzzle summaries."""
+    summary = [{"id": s["id"], "title": s["title"], "description": s["description"], "size": s["size"], "difficulty": s["difficulty"]} for s in SUDOKU_PUZZLES]
+    return jsonify(summary)
+
+
+@app.route("/api/sudoku/<int:puzzle_id>", methods=["GET"])
+def get_sudoku_puzzle(puzzle_id):
+    """Return full sudoku puzzle data."""
+    for s in SUDOKU_PUZZLES:
+        if s["id"] == puzzle_id:
+            return jsonify(s)
+    return jsonify({"error": "Nie znaleziono sudoku"}), 404
 
 
 @app.route("/api/thinking", methods=["GET"])
@@ -276,6 +293,19 @@ def save_progress(username):
             progress["crossword_completed"].append(crossword_id)
         prev = progress["crossword_stars"].get(str(crossword_id), 0)
         progress["crossword_stars"][str(crossword_id)] = max(prev, crossword_stars)
+
+    # Sudoku progress
+    sudoku_id = data.get("sudoku_id")
+    sudoku_stars = data.get("sudoku_stars", 1)
+    if sudoku_id is not None:
+        if "sudoku_completed" not in progress:
+            progress["sudoku_completed"] = []
+        if "sudoku_stars" not in progress:
+            progress["sudoku_stars"] = {}
+        if sudoku_id not in progress["sudoku_completed"]:
+            progress["sudoku_completed"].append(sudoku_id)
+        prev = progress["sudoku_stars"].get(str(sudoku_id), 0)
+        progress["sudoku_stars"][str(sudoku_id)] = max(prev, sudoku_stars)
 
     _save_progress(username, progress)
     return jsonify(progress)

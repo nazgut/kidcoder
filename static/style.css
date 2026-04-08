@@ -897,6 +897,7 @@ body {
 #screen-memory { flex-direction: column; }
 #screen-adventure { flex-direction: column; }
 #screen-crossword { flex-direction: column; }
+#screen-sudoku { flex-direction: column; }
 .logic-layout {
   flex: 1;
   display: flex;
@@ -2516,4 +2517,130 @@ body {
   .cw-secret-letters { font-size: 1.15rem; letter-spacing: 4px; }
   .crossword-clue { padding: 10px 12px; font-size: 0.9rem; }
   .crossword-desc { padding: 16px 20px; font-size: 1rem; }
+}
+
+/* ============ SUDOKU ============ */
+#screen-sudoku { flex-direction: column; }
+.sudoku-top-bar {
+  background: linear-gradient(135deg, #6C5CE7, #A29BFE);
+  box-shadow: 0 4px 20px rgba(108, 92, 231, 0.35);
+}
+.sudoku-game-bg {
+  background: linear-gradient(135deg, #F8F7FF 0%, #E8E4F8 100%);
+}
+.sudoku-hero {
+  background: linear-gradient(135deg, #6C5CE7 0%, #A29BFE 100%);
+}
+.sudoku-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 24px;
+}
+.sudoku-board {
+  display: grid;
+  gap: 3px;
+  justify-content: center;
+  padding: 16px;
+  background: var(--white);
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(108, 92, 231, 0.15);
+  border: 3px solid #E8E4F8;
+  max-width: 420px;
+  width: 100%;
+}
+.sudoku-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border: 2px solid #E8E4F8;
+  border-radius: 10px;
+  font-size: 1.5rem;
+  font-weight: 800;
+  font-family: 'Nunito', sans-serif;
+  color: var(--dark);
+  background: var(--white);
+  transition: all 0.2s ease;
+}
+.sudoku-cell.sudoku-given {
+  background: linear-gradient(135deg, #EDE7F6, #D1C4E9);
+  color: #4A148C;
+  font-size: 1.6rem;
+  border-color: #B39DDB;
+}
+.sudoku-cell.sudoku-border-top {
+  border-top: 3px solid #6C5CE7;
+}
+.sudoku-cell.sudoku-border-left {
+  border-left: 3px solid #6C5CE7;
+}
+.sudoku-input {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: transparent;
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 800;
+  font-family: 'Nunito', sans-serif;
+  color: #6C5CE7;
+  outline: none;
+  caret-color: #6C5CE7;
+}
+.sudoku-input:focus {
+  background: rgba(108, 92, 231, 0.08);
+  border-radius: 8px;
+}
+.sudoku-input.sudoku-error {
+  color: var(--red);
+  background: rgba(255, 107, 107, 0.12);
+}
+.sudoku-input.sudoku-correct {
+  color: var(--green);
+  background: rgba(0, 184, 148, 0.12);
+}
+.sudoku-feedback {
+  text-align: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+  min-height: 30px;
+  padding: 12px 20px;
+  border-radius: 14px;
+  transition: all 0.3s ease;
+  max-width: 420px;
+  width: 100%;
+}
+.sudoku-feedback-warn {
+  color: #E67E22;
+  background: #FFF8E1;
+  border: 2px solid #FDCB6E;
+}
+.sudoku-feedback-error {
+  color: var(--red-dark, #D63031);
+  background: #FFEAEA;
+  border: 2px solid #FAB1A0;
+}
+.sudoku-feedback-hint {
+  color: #6C5CE7;
+  background: #F3F0FF;
+  border: 2px solid #A29BFE;
+}
+
+/* Sudoku size adjustments */
+.sudoku-size-4 { max-width: 280px; }
+.sudoku-size-4 .sudoku-cell { width: 56px; height: 56px; }
+.sudoku-size-6 { max-width: 380px; }
+.sudoku-size-6 .sudoku-cell { width: 52px; height: 52px; }
+.sudoku-size-6 .sudoku-cell .sudoku-input { font-size: 1.3rem; }
+.sudoku-size-6 .sudoku-given { font-size: 1.4rem; }
+
+@media (max-width: 500px) {
+  .sudoku-size-4 .sudoku-cell { width: 48px; height: 48px; }
+  .sudoku-size-6 .sudoku-cell { width: 42px; height: 42px; }
+  .sudoku-size-6 .sudoku-cell .sudoku-input { font-size: 1.1rem; }
+  .sudoku-main { padding: 16px; }
+  .sudoku-board { padding: 12px; }
 }

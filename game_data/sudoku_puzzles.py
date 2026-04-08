@@ -1,0 +1,256 @@
+"""KidCoder – Sudoku puzzles for kids.
+
+Each puzzle has a 4x4 or 6x6 grid appropriate for children.
+- grid: the puzzle (0 = empty cell)
+- solution: the complete solved grid
+- size: 4 or 6
+"""
+
+SUDOKU_PUZZLES = [
+    {
+        "id": 1,
+        "title": "Pierwsze Sudoku 🌟",
+        "description": "Łatwe sudoku 4×4 – uzupełnij brakujące liczby!",
+        "size": 4,
+        "difficulty": "łatwe",
+        "grid": [
+            [1, 0, 3, 4],
+            [3, 4, 0, 2],
+            [0, 3, 4, 1],
+            [4, 1, 2, 0],
+        ],
+        "solution": [
+            [1, 2, 3, 4],
+            [3, 4, 1, 2],
+            [2, 3, 4, 1],
+            [4, 1, 2, 3],
+        ],
+        "hints": [
+            "W każdym wierszu każda liczba może być tylko raz!",
+            "Sprawdź, jakich liczb brakuje w pierwszym wierszu.",
+        ],
+    },
+    {
+        "id": 2,
+        "title": "Kolorowe cyfry 🎨",
+        "description": "Wypełnij siatkę 4×4 liczbami 1-4!",
+        "size": 4,
+        "difficulty": "łatwe",
+        "grid": [
+            [0, 2, 0, 1],
+            [1, 0, 2, 0],
+            [0, 1, 0, 2],
+            [2, 0, 1, 0],
+        ],
+        "solution": [
+            [3, 2, 4, 1],
+            [1, 4, 2, 3],
+            [4, 1, 3, 2],
+            [2, 3, 1, 4],
+        ],
+        "hints": [
+            "Każda liczba od 1 do 4 musi być w każdym wierszu i kolumnie.",
+            "Popatrz na kolumny – jakich cyfr brakuje?",
+        ],
+    },
+    {
+        "id": 3,
+        "title": "Liczbowy ogród 🌻",
+        "description": "Posadź liczby w ogrodzie 4×4!",
+        "size": 4,
+        "difficulty": "łatwe",
+        "grid": [
+            [0, 1, 0, 3],
+            [3, 0, 1, 0],
+            [0, 3, 0, 1],
+            [1, 0, 3, 0],
+        ],
+        "solution": [
+            [2, 1, 4, 3],
+            [3, 4, 1, 2],
+            [4, 3, 2, 1],
+            [1, 2, 3, 4],
+        ],
+        "hints": [
+            "Sprawdź kwadrat 2×2 w lewym górnym rogu.",
+            "W każdym małym kwadracie 2×2 też muszą być wszystkie liczby!",
+        ],
+    },
+    {
+        "id": 4,
+        "title": "Sudoku detektyw 🔍",
+        "description": "Rozwiąż zagadkę liczbową 4×4!",
+        "size": 4,
+        "difficulty": "średnie",
+        "grid": [
+            [0, 0, 3, 0],
+            [3, 0, 0, 1],
+            [0, 0, 1, 3],
+            [1, 3, 0, 0],
+        ],
+        "solution": [
+            [2, 1, 3, 4],
+            [3, 4, 2, 1],
+            [4, 2, 1, 3],
+            [1, 3, 4, 2],
+        ],
+        "hints": [
+            "Zacznij od wiersza, w którym brakuje tylko jednej liczby.",
+            "W trzecim wierszu masz 1 i 3 – jakie liczby brakują?",
+        ],
+    },
+    {
+        "id": 5,
+        "title": "Magiczny kwadrat ✨",
+        "description": "Większe wyzwanie – sudoku 6×6!",
+        "size": 6,
+        "difficulty": "średnie",
+        "grid": [
+            [0, 6, 0, 0, 3, 0],
+            [0, 0, 3, 6, 0, 0],
+            [6, 0, 0, 3, 0, 5],
+            [3, 0, 5, 0, 0, 6],
+            [0, 0, 6, 5, 0, 0],
+            [0, 5, 0, 0, 6, 0],
+        ],
+        "solution": [
+            [5, 6, 1, 4, 3, 2],
+            [4, 2, 3, 6, 5, 1],
+            [6, 1, 4, 3, 2, 5],
+            [3, 4, 5, 2, 1, 6],
+            [1, 3, 6, 5, 4, 2],  
+            [2, 5, 2, 1, 6, 3],
+        ],
+        "hints": [
+            "Teraz masz liczby od 1 do 6!",
+            "Każdy prostokąt 2×3 musi mieć wszystkie liczby od 1 do 6.",
+        ],
+    },
+    {
+        "id": 6,
+        "title": "Kosmiczne Sudoku 🚀",
+        "description": "Sudoku 6×6 z kosmosu!",
+        "size": 6,
+        "difficulty": "średnie",
+        "grid": [
+            [1, 0, 0, 0, 5, 0],
+            [0, 5, 0, 1, 0, 3],
+            [0, 0, 1, 0, 3, 0],
+            [0, 1, 0, 3, 0, 0],
+            [3, 0, 5, 0, 1, 0],
+            [0, 3, 0, 0, 0, 1],
+        ],
+        "solution": [
+            [1, 4, 3, 2, 5, 6],
+            [2, 5, 6, 1, 4, 3],
+            [5, 6, 1, 4, 3, 2],
+            [4, 1, 2, 3, 6, 5],
+            [3, 2, 5, 6, 1, 4],
+            [6, 3, 4, 5, 2, 1],
+        ],
+        "hints": [
+            "Zacznij od wierszy z największą liczbą podanych cyfr.",
+            "W pierwszym wierszu masz 1 i 5 – szukaj brakujących!",
+        ],
+    },
+    {
+        "id": 7,
+        "title": "Podwodne Sudoku 🐠",
+        "description": "Zanurz się w sudoku 4×4!",
+        "size": 4,
+        "difficulty": "łatwe",
+        "grid": [
+            [2, 0, 4, 0],
+            [0, 4, 0, 2],
+            [4, 0, 2, 0],
+            [0, 2, 0, 4],
+        ],
+        "solution": [
+            [2, 1, 4, 3],
+            [3, 4, 1, 2],
+            [4, 3, 2, 1],
+            [1, 2, 3, 4],
+        ],
+        "hints": [
+            "Popatrz na przekątną – jakie liczby się powtarzają?",
+            "W każdym wierszu brakuje dwóch liczb – sprawdź, które!",
+        ],
+    },
+    {
+        "id": 8,
+        "title": "Dżunglowe Sudoku 🌴",
+        "description": "Przebij się przez dżunglę liczb 6×6!",
+        "size": 6,
+        "difficulty": "trudne",
+        "grid": [
+            [0, 0, 0, 5, 0, 1],
+            [0, 1, 5, 0, 0, 0],
+            [1, 0, 0, 0, 5, 0],
+            [0, 5, 0, 0, 0, 3],
+            [0, 0, 0, 3, 1, 0],
+            [3, 0, 1, 0, 0, 0],
+        ],
+        "solution": [
+            [4, 3, 6, 5, 2, 1],
+            [2, 1, 5, 4, 3, 6],
+            [1, 6, 3, 2, 5, 4],
+            [6, 5, 4, 1, 2, 3],  
+            [5, 2, 6, 3, 1, 4],  
+            [3, 4, 1, 6, 4, 5],
+        ],
+        "hints": [
+            "To najtrudniejsze sudoku! Zacznij od komórek, gdzie jest najmniej możliwości.",
+            "Sprawdź prostokąty 2×3 – szukaj liczb, które mogą być tylko w jednym miejscu.",
+        ],
+    },
+    {
+        "id": 9,
+        "title": "Tęczowe Sudoku 🌈",
+        "description": "Pokoloruj siatkę 4×4 liczbami!",
+        "size": 4,
+        "difficulty": "łatwe",
+        "grid": [
+            [0, 3, 0, 0],
+            [0, 0, 0, 3],
+            [3, 0, 0, 0],
+            [0, 0, 3, 0],
+        ],
+        "solution": [
+            [2, 3, 1, 4],
+            [4, 1, 2, 3],
+            [3, 4, 1, 2],  
+            [1, 2, 3, 4],  
+        ],
+        "hints": [
+            "Masz podane tylko trójki – to ułatwia start!",
+            "Sprawdź, gdzie trójka nie może się znaleźć.",
+        ],
+    },
+    {
+        "id": 10,
+        "title": "Sudoku Mistrz 🏆",
+        "description": "Wyzwanie dla mistrzów – sudoku 6×6!",
+        "size": 6,
+        "difficulty": "trudne",
+        "grid": [
+            [0, 0, 4, 0, 0, 6],
+            [6, 0, 0, 0, 4, 0],
+            [0, 4, 0, 6, 0, 0],
+            [0, 0, 6, 0, 3, 0],
+            [0, 6, 0, 0, 0, 4],
+            [4, 0, 0, 3, 0, 0],
+        ],
+        "solution": [
+            [3, 1, 4, 5, 2, 6],
+            [6, 5, 2, 1, 4, 3],
+            [2, 4, 3, 6, 5, 1],
+            [1, 2, 6, 4, 3, 5],
+            [5, 6, 1, 2, 3, 4],
+            [4, 3, 5, 3, 6, 2],
+        ],
+        "hints": [
+            "To największe wyzwanie! Bądź cierpliwy.",
+            "Użyj metody eliminacji – wykreślaj niemożliwe liczby.",
+        ],
+    },
+]
