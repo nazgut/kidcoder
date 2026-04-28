@@ -1,0 +1,27 @@
+{
+  "username": "Ewa",
+  "completed": [],
+  "stars": {},
+  "current_level": 1,
+  "typing_completed": [],
+  "typing_stars": {},
+  "typing_best_wpm": {},
+  "logic_completed": [],
+  "logic_stars": {},
+  "quiz_completed": [],
+  "quiz_stars": {},
+  "memory_completed": [],
+  "memory_stars": {},
+  "adventure_completed": [],
+  "adventure_stars": {},
+  "thinking_completed": [],
+  "thinking_stars": {},
+  "crossword_completed": [
+    1
+  ],
+  "crossword_stars": {
+    "1": 3
+  },
+  "sudoku_completed": [],
+  "sudoku_stars": {}
+}

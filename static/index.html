@@ -49,18 +49,18 @@
     <div class="top-bar-right">
       <span id="user-display" class="user-badge">👤 Gracz</span>
       <span id="total-stars" class="star-badge">⭐ 0</span>
-      <button id="btn-logout" class="btn btn-small btn-logout" title="Wyloguj">🚪 Wyloguj</button>
+      <button id="btn-logout" class="btn btn-small btn-logout" title="Wyloguj">🚦 <span class="btn-label">Wyloguj</span></button>
     </div>
   </header>
   <div class="tabs-bar">
-    <button class="tab-btn active" data-tab="coding">🧩 Kodowanie</button>
-    <button class="tab-btn" data-tab="typing">⌨️ Pisanie</button>
-    <button class="tab-btn" data-tab="logic">🧠 Logika</button>
-    <button class="tab-btn" data-tab="memory">🃏 Memory</button>
-    <button class="tab-btn" data-tab="adventure">🗺️ Przygoda</button>
-    <button class="tab-btn" data-tab="thinking">🤖 Myślenie</button>
-    <button class="tab-btn" data-tab="sudoku">🔢 Sudoku</button>
-    <button class="tab-btn" data-tab="diploma">🎓 Dyplom</button>
+    <button class="tab-btn active" data-tab="coding">🧩 <span class="tab-label">Kodowanie</span></button>
+    <button class="tab-btn" data-tab="typing">⌨️ <span class="tab-label">Pisanie</span></button>
+    <button class="tab-btn" data-tab="logic">🧠 <span class="tab-label">Logika</span></button>
+    <button class="tab-btn" data-tab="memory">🃏 <span class="tab-label">Memory</span></button>
+    <button class="tab-btn" data-tab="adventure">🗺️ <span class="tab-label">Przygoda</span></button>
+    <button class="tab-btn" data-tab="thinking">🤖 <span class="tab-label">Myślenie</span></button>
+    <button class="tab-btn" data-tab="sudoku">🔢 <span class="tab-label">Sudoku</span></button>
+    <button class="tab-btn" data-tab="diploma">🎓 <span class="tab-label">Dyplom</span></button>
   </div>
   <div id="tab-coding" class="tab-content active">
     <div class="levels-container">
@@ -138,13 +138,13 @@
 <!-- EKRAN GRY KODOWANIA -->
 <div id="screen-game" class="screen">
   <header class="top-bar coding-top-bar">
-    <button id="btn-back" class="btn btn-back" title="Wróć">🔙 Wróć</button>
+    <button id="btn-back" class="btn btn-back" title="Wróć">🔙 <span class="btn-label">Wróć</span></button>
     <div class="level-info">
       <span id="level-title" class="level-title-bar">Poziom 1</span>
     </div>
     <div class="top-bar-right">
-      <button id="btn-hint" class="btn btn-action">💡 Podpowiedź</button>
-      <button id="btn-reset" class="btn btn-action">🔄 Reset</button>
+      <button id="btn-hint" class="btn btn-action">💡 <span class="btn-label">Podpowiedź</span></button>
+      <button id="btn-reset" class="btn btn-action">🔄 <span class="btn-label">Reset</span></button>
     </div>
   </header>
   <div class="game-layout">
@@ -179,7 +179,7 @@
 <!-- EKRAN PISANIA -->
 <div id="screen-typing" class="screen">
   <header class="top-bar typing-top-bar">
-    <button id="btn-back-typing" class="btn btn-back" title="Wróć">🔙 Wróć</button>
+    <button id="btn-back-typing" class="btn btn-back" title="Wróć">🔙 <span class="btn-label">Wróć</span></button>
     <div class="level-info">
       <span id="typing-title" class="level-title-bar">Lekcja 1</span>
     </div>
@@ -212,12 +212,12 @@
 <!-- EKRAN GRY LOGICZNEJ -->
 <div id="screen-logic" class="screen">
   <header class="top-bar logic-top-bar">
-    <button id="btn-back-logic" class="btn btn-back" title="Wróć">🔙 Wróć</button>
+    <button id="btn-back-logic" class="btn btn-back" title="Wróć">🔙 <span class="btn-label">Wróć</span></button>
     <div class="level-info">
       <span id="logic-title" class="level-title-bar">Zagadka 1</span>
     </div>
     <div class="top-bar-right">
-      <button id="btn-logic-hint" class="btn btn-action">💡 Podpowiedź</button>
+      <button id="btn-logic-hint" class="btn btn-action">💡 <span class="btn-label">Podpowiedź</span></button>
     </div>
   </header>
   <div class="logic-layout logic-game-bg">
@@ -233,12 +233,12 @@
 <!-- EKRAN QUIZU (hidden, used internally by adventure) -->
 <div id="screen-quiz" class="screen">
   <header class="top-bar quiz-top-bar">
-    <button id="btn-back-quiz" class="btn btn-back" title="Wróć">🔙 Wróć</button>
+    <button id="btn-back-quiz" class="btn btn-back" title="Wróć">🔙 <span class="btn-label">Wróć</span></button>
     <div class="level-info">
       <span id="quiz-title" class="level-title-bar">Quiz 1</span>
     </div>
     <div class="top-bar-right">
-      <button id="btn-quiz-hint" class="btn btn-action">💡 Podpowiedź</button>
+      <button id="btn-quiz-hint" class="btn btn-action">💡 <span class="btn-label">Podpowiedź</span></button>
     </div>
   </header>
   <div class="logic-layout quiz-game-bg">
@@ -255,7 +255,7 @@
 <!-- EKRAN GRY MEMORY -->
 <div id="screen-memory" class="screen">
   <header class="top-bar memory-top-bar">
-    <button id="btn-back-memory" class="btn btn-back" title="Wróć">🔙 Wróć</button>
+    <button id="btn-back-memory" class="btn btn-back" title="Wróć">🔙 <span class="btn-label">Wróć</span></button>
     <div class="level-info">
       <span id="memory-title" class="level-title-bar">Memory 1</span>
     </div>
@@ -277,7 +277,7 @@
 <!-- EKRAN PRZYGODY (REDESIGNED) -->
 <div id="screen-adventure" class="screen">
   <header class="top-bar adventure-top-bar">
-    <button id="btn-back-adventure" class="btn btn-back" title="Wróć">🔙 Wróć</button>
+    <button id="btn-back-adventure" class="btn btn-back" title="Wróć">🔙 <span class="btn-label">Wróć</span></button>
     <div class="level-info">
       <span id="adventure-title" class="level-title-bar">Przygoda</span>
     </div>
@@ -290,12 +290,12 @@
 <!-- EKRAN KRZYŻÓWKI -->
 <div id="screen-crossword" class="screen">
   <header class="top-bar crossword-top-bar">
-    <button id="btn-back-crossword" class="btn btn-back" title="Wróć">🔙 Wróć</button>
+    <button id="btn-back-crossword" class="btn btn-back" title="Wróć">🔙 <span class="btn-label">Wróć</span></button>
     <div class="level-info">
       <span id="crossword-title" class="level-title-bar">Krzyżówka</span>
     </div>
     <div class="top-bar-right">
-      <button id="btn-crossword-check" class="btn btn-action">✅ Sprawdź</button>
+      <button id="btn-crossword-check" class="btn btn-action">✅ <span class="btn-label">Sprawdź</span></button>
     </div>
   </header>
   <div class="logic-layout crossword-game-bg">
@@ -326,13 +326,13 @@
 <!-- EKRAN SUDOKU -->
 <div id="screen-sudoku" class="screen">
   <header class="top-bar sudoku-top-bar">
-    <button id="btn-back-sudoku" class="btn btn-back" title="Wróć">🔙 Wróć</button>
+    <button id="btn-back-sudoku" class="btn btn-back" title="Wróć">🔙 <span class="btn-label">Wróć</span></button>
     <div class="level-info">
       <span id="sudoku-title" class="level-title-bar">Sudoku</span>
     </div>
     <div class="top-bar-right">
-      <button id="btn-sudoku-hint" class="btn btn-action">💡 Podpowiedź</button>
-      <button id="btn-sudoku-check" class="btn btn-action">✅ Sprawdź</button>
+      <button id="btn-sudoku-hint" class="btn btn-action">💡 <span class="btn-label">Podpowiedź</span></button>
+      <button id="btn-sudoku-check" class="btn btn-action">✅ <span class="btn-label">Sprawdź</span></button>
     </div>
   </header>
   <div class="logic-layout sudoku-game-bg">
@@ -359,12 +359,12 @@
 <!-- EKRAN MYŚLENIA KOMPUTEROWEGO -->
 <div id="screen-thinking" class="screen">
   <header class="top-bar thinking-top-bar">
-    <button id="btn-back-thinking" class="btn btn-back" title="Wróć">🔙 Wróć</button>
+    <button id="btn-back-thinking" class="btn btn-back" title="Wróć">🔙 <span class="btn-label">Wróć</span></button>
     <div class="level-info">
       <span id="thinking-title" class="level-title-bar">Myślenie</span>
     </div>
     <div class="top-bar-right">
-      <button id="btn-thinking-hint" class="btn btn-action">💡 Podpowiedź</button>
+      <button id="btn-thinking-hint" class="btn btn-action">💡 <span class="btn-label">Podpowiedź</span></button>
     </div>
   </header>
   <div class="logic-layout thinking-game-bg">
@@ -475,7 +475,7 @@
 <!-- EKRAN GRY SAMOCHODOWEJ -->
 <div id="screen-car" class="screen">
   <header class="top-bar car-top-bar">
-    <button id="btn-back-car" class="btn btn-back" title="Wróć">🔙 Wróć</button>
+    <button id="btn-back-car" class="btn btn-back" title="Wróć">🔙 <span class="btn-label">Wróć</span></button>
     <div class="level-info">
       <span id="car-title" class="level-title-bar">Wyścig literek</span>
     </div>

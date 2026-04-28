@@ -37,6 +37,13 @@ body {
   overflow: hidden;
   height: 100vh;
   width: 100vw;
+  max-width: 100vw;
+}
+
+/* Improve touch targets globally */
+button, [role="button"] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* ---- SCREENS ---- */
@@ -231,9 +238,12 @@ body {
   min-height: 64px;
   gap: 16px;
 }
-.top-bar-left { display: flex; align-items: center; gap: 10px; }
-.top-bar-right { display: flex; align-items: center; gap: 12px; }
-.brand { font-size: 1.1rem; font-weight: 800; color: var(--purple); }
+.top-bar-left { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.top-bar-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.brand { font-size: 1.1rem; font-weight: 800; color: var(--purple); white-space: nowrap; }
+.level-info { flex: 1; min-width: 0; text-align: center; overflow: hidden; }
+.brand { font-size: 1.1rem; font-weight: 800; color: var(--purple); white-space: nowrap; }
+.level-info { flex: 1; min-width: 0; text-align: center; overflow: hidden; }
 .user-badge {
   background: var(--purple-light);
   color: var(--white);
@@ -241,6 +251,7 @@ body {
   border-radius: 20px;
   font-size: 0.82rem;
   font-weight: 700;
+  white-space: nowrap;
 }
 .star-badge {
   background: var(--yellow);
@@ -249,8 +260,9 @@ body {
   border-radius: 20px;
   font-size: 0.82rem;
   font-weight: 700;
+  white-space: nowrap;
 }
-.level-title-bar { font-weight: 800; font-size: 1.15rem; color: #FFF; text-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+.level-title-bar { font-weight: 800; font-size: 1.15rem; color: #FFF; text-shadow: 0 1px 3px rgba(0,0,0,0.2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; max-width: 100%; }
 
 /* ---- Themed Top Bars ---- */
 .coding-top-bar {
@@ -289,10 +301,11 @@ body {
 }
 
 /* ============ LEVEL SELECT ============ */
-#screen-levels { flex-direction: column; }
+#screen-levels { flex-direction: column; overflow: hidden; }
 .levels-container {
   flex: 1;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   padding: 30px;
 }
 .section-title {
@@ -613,12 +626,38 @@ body {
   .game-col-left {
     flex-direction: row;
     gap: 10px;
-    min-height: 180px;
-    max-height: 40vh;
+    min-height: 0;
+    max-height: 42vh;
   }
   .panel-toolbox { max-height: none; min-height: 0; }
   .panel-program { min-height: 0; }
   .panel { border-radius: 12px; }
+}
+
+/* Coding game: stack vertically on small phones */
+@media (max-width: 580px) {
+  .game-layout {
+    grid-template-rows: auto auto 1fr;
+    overflow-y: auto;
+    padding: 8px;
+    gap: 8px;
+  }
+  .game-col-left {
+    flex-direction: column;
+    max-height: none;
+    min-height: 0;
+  }
+  .panel-toolbox { max-height: 130px; flex-shrink: 0; overflow-y: auto; }
+  .panel-program { flex: 1; min-height: 110px; max-height: 180px; }
+  .panel-game { min-height: 220px; }
+  .panel { padding: 8px; border-radius: 10px; }
+  .panel-title { font-size: 0.82rem; padding: 7px 12px; border-radius: 8px; margin-bottom: 8px; }
+  .program-controls { gap: 5px; margin-top: 8px; }
+  .btn-run { font-size: 0.9rem; padding: 8px 16px; }
+  .btn-step, .btn-clear { font-size: 0.82rem; padding: 7px 10px; }
+  .toolbox { gap: 5px; }
+  .block { font-size: 0.75rem; padding: 7px 10px; min-height: 36px; }
+  .block .block-icon { width: 20px; height: 20px; }
 }
 
 /* ============ TABS ============ */
@@ -628,7 +667,12 @@ body {
   background: var(--white);
   border-bottom: 2px solid var(--gray-bg);
   padding: 0 20px;
+  flex-shrink: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
 }
+.tabs-bar::-webkit-scrollbar { display: none; }
 .tab-btn {
   font-family: inherit;
   font-size: 1rem;
@@ -640,13 +684,15 @@ body {
   color: var(--gray);
   cursor: pointer;
   transition: var(--transition);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 .tab-btn:hover { color: var(--purple); }
 .tab-btn.active {
   color: var(--purple);
   border-bottom-color: var(--purple);
 }
-.tab-content { display: none; flex: 1; overflow-y: auto; }
+.tab-content { display: none; flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 .tab-content.active { display: block; }
 
 /* ============ TYPING GAME ============ */
@@ -656,6 +702,7 @@ body {
   justify-content: center;
   padding: 20px;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   background: linear-gradient(180deg, #E8F4FD 0%, #F8F9FD 40%);
 }
 .typing-main {
@@ -904,6 +951,7 @@ body {
   justify-content: center;
   padding: 24px 20px;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 /* Themed game backgrounds */
 .logic-game-bg {
@@ -958,7 +1006,7 @@ body {
   min-height: 100px;
   border: 3px solid transparent;
   position: relative;
-  overflow: hidden;
+  overflow: hidden auto;
 }
 .logic-game-bg .logic-puzzle-area {
   border-color: #FFE0B2;
@@ -2137,12 +2185,13 @@ body {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    padding: 0 10px;
+    padding: 0 8px;
+    flex-shrink: 0;
   }
   .tabs-bar::-webkit-scrollbar { display: none; }
   .tab-btn {
-    padding: 10px 18px;
-    font-size: 0.9rem;
+    padding: 10px 16px;
+    font-size: 0.88rem;
     white-space: nowrap;
     flex-shrink: 0;
   }
@@ -2192,160 +2241,243 @@ body {
   .diploma-preview .diploma-name { font-size: 1.8rem; }
 }
 
-/* ---------- Phone (≤ 600px) ---------- */
-@media (max-width: 600px) {
-  /* Tabs */
+/* ---------- Phone (≤ 640px) ---------- */
+@media (max-width: 640px) {
+  /* ---- Tabs ---- */
   .tab-btn {
-    padding: 8px 14px;
-    font-size: 0.82rem;
+    padding: 8px 12px;
+    font-size: 0.78rem;
   }
 
-  /* Top bar */
-  .top-bar { padding: 6px 10px; min-height: 44px; }
-  .top-bar-right { gap: 6px; }
-  .btn-small { font-size: 0.7rem; padding: 4px 8px; }
-  .star-badge, .user-badge { font-size: 0.78rem; padding: 3px 8px; }
-  .btn-icon { font-size: 0.82rem; padding: 6px 10px; }
-  .btn-back { padding: 6px 14px; font-size: 0.85rem; }
-  .btn-action { padding: 6px 12px; font-size: 0.8rem; }
-  .top-badge { padding: 5px 10px; font-size: 0.8rem; }
+  /* ---- Top bar (levels screen) ---- */
+  .top-bar { padding: 6px 10px; min-height: 48px; gap: 6px; flex-wrap: nowrap; }
+  .top-bar-left { gap: 6px; }
+  .top-bar-right { gap: 5px; flex-shrink: 0; }
+  .brand { font-size: 0.82rem; }
+  .star-badge, .user-badge { font-size: 0.72rem; padding: 3px 8px; }
+  .btn-small { font-size: 0.68rem; padding: 4px 8px; }
 
-  /* Level cards */
+  /* ---- Top bar (game screens) ---- */
+  .btn-back { padding: 6px 12px; font-size: 0.82rem; }
+  .btn-action { padding: 6px 10px; font-size: 0.78rem; }
+  .top-badge { padding: 5px 9px; font-size: 0.78rem; }
+  .level-title-bar { font-size: 0.88rem; }
+
+  /* ---- Level cards ---- */
   .levels-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
   .level-card { padding: 14px 10px; border-radius: 12px; }
-  .level-card .level-number { width: 32px; height: 32px; font-size: 0.85rem; }
-  .level-card .level-name { font-size: 0.88rem; }
+  .level-card .level-number { width: 38px; height: 38px; font-size: 1rem; }
+  .level-card h3 { font-size: 0.88rem; }
+  .level-card p { font-size: 0.75rem; }
   .levels-container { padding: 14px; }
-  .section-title { font-size: 1.1rem; margin-bottom: 12px; }
+  .section-title { font-size: 1.05rem; margin-bottom: 12px; }
 
-  /* Coding game layout */
-  .game-layout { gap: 8px; }
-  .game-col-left { max-height: none; min-height: 0; }
-  .panel-toolbox { max-height: 160px; }
-  .panel-title { font-size: 0.9rem; }
-  .panel { padding: 10px; }
-
-  /* Typing */
-  .typing-layout { padding: 12px; }
-  .typing-display { font-size: 1rem; padding: 14px 16px; min-height: 70px; max-height: 140px; letter-spacing: 0; }
+  /* ---- Typing ---- */
+  .typing-layout { padding: 10px; }
+  .typing-main { gap: 12px; }
+  .typing-display { font-size: 1rem; padding: 14px 14px; min-height: 70px; max-height: 130px; letter-spacing: 0; }
   .typing-input { font-size: 1rem; padding: 12px 14px; }
-  .stat-box { padding: 8px 12px; min-width: 60px; }
-  .stat-value { font-size: 1.1rem; }
-  .stat-label { font-size: 0.65rem; }
-  .kb-key { width: 26px; height: 26px; font-size: 0.6rem; border-radius: 5px; }
-  .kb-key.space { width: 140px; }
-  .kb-row { gap: 3px; }
+  .stat-box { padding: 8px 10px; min-width: 56px; }
+  .stat-value { font-size: 1.05rem; }
+  .stat-label { font-size: 0.62rem; }
+  .kb-key { width: 26px; height: 26px; font-size: 0.58rem; border-radius: 5px; }
+  .kb-key.space { width: 130px; }
+  .kb-row { gap: 2px; }
+  .keyboard-visual { padding: 10px 8px; gap: 3px; }
 
-  /* Logic / Thinking */
-  .logic-layout { padding: 12px; }
-  .logic-main { gap: 14px; }
-  .logic-desc { font-size: 0.92rem; }
-  .logic-puzzle-area { padding: 16px 14px; border-radius: 12px; }
-  .logic-puzzle-area .puzzle-sequence { font-size: 1.3rem; gap: 8px; }
-  .logic-puzzle-area .puzzle-item { width: 46px; height: 46px; font-size: 1.2rem; border-radius: 10px; }
-  .logic-option { padding: 12px 14px; font-size: 1rem; border-radius: 12px; }
-  .puzzle-grid-cell { width: 42px; height: 42px; font-size: 1.1rem; }
-
-  .thinking-instruction { font-size: 0.95rem; padding: 12px 14px; }
-  .thinking-scenario { font-size: 1.1rem; padding: 12px 14px; }
-  .thinking-code-block { font-size: 0.95rem; padding: 12px 14px; }
-  .thinking-sort-item { padding: 10px 14px; font-size: 0.9rem; }
-  .thinking-step-btn { padding: 10px 14px; font-size: 0.88rem; }
-  .thinking-checkbox-label { padding: 8px 12px; font-size: 0.88rem; }
-  .quiz-code-block { font-size: 0.85rem; padding: 12px 14px; }
+  /* ---- Logic / Quiz / Thinking ---- */
+  .logic-layout { padding: 10px; }
+  .logic-main { gap: 12px; }
+  .logic-desc { font-size: 0.88rem; padding: 12px 14px; border-radius: 12px; }
+  .logic-puzzle-area { padding: 14px 12px; border-radius: 14px; }
+  .logic-puzzle-area .puzzle-sequence { font-size: 1.2rem; gap: 7px; }
+  .logic-puzzle-area .puzzle-item { width: 44px; height: 44px; font-size: 1.15rem; border-radius: 10px; }
+  /* Stack logic options vertically on phones */
+  .logic-options { flex-direction: column; gap: 8px; }
+  .logic-option { padding: 12px 16px; font-size: 1rem; border-radius: 12px; min-width: 0; width: 100%; }
   .logic-option-btn { padding: 10px 14px; font-size: 0.92rem; }
-  .logic-desc { font-size: 0.9rem; padding: 12px 14px; }
-  .adv-dpad-container { padding: 10px; }
-  .stat-box { border-width: 2px; }
+  .logic-feedback { font-size: 0.92rem; padding: 10px 12px; }
+  .puzzle-grid-cell { width: 40px; height: 40px; font-size: 1rem; border-radius: 8px; }
 
-  /* Memory */
-  .memory-board { gap: 6px; padding: 14px; max-width: 100%; border-radius: 14px; border-width: 2px; }
+  .thinking-instruction { font-size: 0.9rem; padding: 10px 12px; }
+  .thinking-scenario { font-size: 1rem; padding: 10px 12px; }
+  .thinking-code-block { font-size: 0.88rem; padding: 10px 12px; }
+  .thinking-sort-item { padding: 10px 12px; font-size: 0.88rem; }
+  .thinking-step-btn { padding: 10px 12px; font-size: 0.86rem; }
+  .thinking-checkbox-label { padding: 8px 10px; font-size: 0.86rem; }
+  .quiz-code-block { font-size: 0.82rem; padding: 10px 12px; }
+
+  /* ---- Memory ---- */
+  .memory-board { gap: 6px; padding: 12px; border-width: 2px; border-radius: 14px; }
   .memory-card-inner { border-radius: 10px; }
   .memory-card-front, .memory-card-back { border-radius: 10px; }
-  .memory-card-content { font-size: 0.9rem; }
-  .memory-card-back.emoji .memory-card-content { font-size: 1.6rem; }
-  .memory-card-icon { font-size: 1.4rem; }
-  .memory-levels-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important; }
-  .adventure-levels-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important; }
-  .thinking-levels-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important; }
-  .tab-hero { padding: 18px 14px; margin-bottom: 16px; border-radius: 14px; }
-  .tab-hero-icon { font-size: 2rem; }
-  .tab-hero-title { font-size: 1.1rem; }
-  .tab-hero-desc { font-size: 0.82rem; }
-  .mlc-preview { font-size: 1.5rem; letter-spacing: 3px; min-height: 44px; padding: 6px 0; }
-  .alc-icon-area { min-height: 70px; padding: 14px 12px 10px; }
-  .alc-icon { font-size: 2.2rem; }
-  .tlc-top { padding: 12px; }
-  .tlc-icon { font-size: 1.6rem; }
+  .memory-card-content { font-size: 0.85rem; }
+  .memory-card-back.emoji .memory-card-content { font-size: 1.5rem; }
+  .memory-card-icon { font-size: 1.3rem; }
+  .memory-controls { margin-top: 12px; }
+  .memory-levels-grid { grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)) !important; }
 
-  /* Adventure */
+  /* ---- Tab heroes ---- */
+  .adventure-levels-grid { grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)) !important; }
+  .thinking-levels-grid { grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)) !important; }
+  .tab-hero { padding: 16px 12px; margin-bottom: 14px; border-radius: 14px; }
+  .tab-hero-icon { font-size: 1.9rem; }
+  .tab-hero-title { font-size: 1.05rem; }
+  .tab-hero-desc { font-size: 0.8rem; }
+  .mlc-preview { font-size: 1.4rem; letter-spacing: 3px; min-height: 44px; padding: 6px 0; }
+  .alc-icon-area { min-height: 68px; padding: 12px 10px 8px; }
+  .alc-icon { font-size: 2rem; }
+  .tlc-top { padding: 12px; }
+  .tlc-icon { font-size: 1.5rem; }
+
+  /* ---- Adventure game ---- */
   .adventure-game-area { gap: 8px; }
-  .adv-stats-bar { padding: 6px 10px; gap: 8px; font-size: 0.85rem; border-radius: 10px; }
-  .adv-stat { font-size: 0.85rem; }
-  .adv-grid { border-radius: 8px; border-width: 2px; }
-  .adv-grid-row { gap: 10px; }
+  .adv-stats-bar { padding: 6px 10px; gap: 7px; font-size: 0.82rem; border-radius: 10px; }
+  .adv-stat { font-size: 0.82rem; padding: 3px 8px; }
+  .adv-hint-stat { font-size: 0.75rem; }
+  .adv-grid { border-radius: 8px; border-width: 2px; gap: 2px; }
+  /* Stack grid and d-pad vertically on phones */
+  .adv-grid-row { flex-direction: column; gap: 10px; align-items: center; }
+  .adv-dpad { padding: 10px; gap: 4px; border-radius: 14px; }
   .adv-dpad-btn { width: 52px; height: 52px; font-size: 1.2rem; border-radius: 12px; }
   .adv-dpad-center { width: 52px; height: 52px; }
-  .adv-overlay-card { padding: 24px 20px; border-radius: 16px; }
+  .adv-dpad-mid { gap: 4px; }
+  .adv-overlay-card { padding: 22px 18px; border-radius: 16px; }
   .adv-overlay-emoji { font-size: 2.2rem; }
   .adv-overlay-card h2 { font-size: 1.2rem; }
 
-  /* Modals */
-  .modal-card { padding: 24px 18px; border-radius: 16px; max-width: 92%; }
-  .modal-card h2 { font-size: 1.3rem; }
+  /* ---- Modals ---- */
+  .modal-card { padding: 22px 16px; border-radius: 16px; max-width: 94%; }
+  .modal-card h2 { font-size: 1.25rem; }
+  .modal-card p { font-size: 0.9rem; margin-bottom: 14px; }
   .modal-buttons { flex-direction: column; gap: 8px; }
-  .modal-buttons .btn { width: 100%; }
+  .modal-buttons .btn { width: 100%; justify-content: center; }
+  .modal-stars { font-size: 2rem; letter-spacing: 4px; margin-bottom: 10px; }
 
-  /* Diploma */
+  /* ---- Diploma ---- */
   .diploma-preview { padding: 20px 14px; border-radius: 12px; }
   .diploma-preview h1 { font-size: 1.3rem; }
-  .diploma-preview h2 { font-size: 1.1rem; }
+  .diploma-preview h2 { font-size: 1.05rem; }
   .diploma-preview .diploma-name { font-size: 1.5rem; }
-  .diploma-preview .diploma-stats { gap: 16px; }
+  .diploma-preview .diploma-stats { gap: 14px; }
   .diploma-preview .diploma-stat-value { font-size: 1.3rem; }
 
-  /* Login card */
-  .login-card { padding: 28px 20px; }
-  .login-card h1 { font-size: 1.4rem; }
-  .login-card .subtitle { font-size: 0.88rem; }
+  /* ---- Login ---- */
+  .login-card { padding: 28px 18px; }
+  .login-card h1 { font-size: 1.35rem; }
+  .login-card .subtitle { font-size: 0.86rem; }
 
-  /* Car game */
-  .car-game-layout { padding: 8px; }
+  /* ---- Car game ---- */
+  .car-game-layout { padding: 8px; gap: 8px; }
+  .car-svg { border-radius: 14px; }
 }
 
-/* ---------- Small phone (≤ 400px) ---------- */
-@media (max-width: 400px) {
-  .tab-btn { padding: 6px 10px; font-size: 0.75rem; }
-  .levels-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
-  .level-card { padding: 10px 8px; }
-  .level-card .level-number { width: 28px; height: 28px; font-size: 0.75rem; }
-  .level-card .level-name { font-size: 0.8rem; }
+/* ---------- Small phone (≤ 480px) ---------- */
+@media (max-width: 480px) {
+  /* Hide brand text to save space */
+  .brand { display: none; }
+  /* Compact user badge */
+  .user-badge { display: none; }
 
-  .typing-display { font-size: 0.9rem; }
-  .keyboard-visual { display: none; }
+  .tab-btn {
+    padding: 7px 10px;
+    font-size: 0.73rem;
+  }
 
-  .adv-dpad-btn { width: 46px; height: 46px; font-size: 1rem; }
-  .adv-dpad-center { width: 46px; height: 46px; }
+  /* Game screen top bars — compact */
+  .btn-back { padding: 5px 10px; font-size: 0.76rem; }
+  .btn-action { padding: 5px 8px; font-size: 0.72rem; }
+  .top-badge { padding: 4px 8px; font-size: 0.72rem; }
+  .level-title-bar { font-size: 0.82rem; }
+  .top-bar { gap: 5px; padding: 5px 8px; min-height: 44px; }
 
-  .memory-board { gap: 4px; padding: 6px; }
+  /* Level cards: 2-column grid */
+  .levels-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .level-card { padding: 12px 8px; }
+  .level-card .level-number { width: 34px; height: 34px; font-size: 0.9rem; }
+  .levels-container { padding: 10px; }
+  .section-title { font-size: 0.98rem; margin-bottom: 10px; }
+
+  /* Keep badges and logout minimal */
+  .star-badge { font-size: 0.7rem; padding: 3px 7px; }
+  .btn-logout { font-size: 0.65rem; padding: 4px 7px; }
+
+  /* Typing */
+  .typing-display { font-size: 0.95rem; padding: 12px 12px; min-height: 60px; }
+  .typing-input { font-size: 0.95rem; padding: 11px 12px; }
+  .typing-stats { gap: 6px; }
+  .stat-box { padding: 7px 8px; min-width: 50px; border-width: 2px; }
+  .stat-value { font-size: 0.95rem; }
+
+  /* Logic options compact */
+  .logic-option { padding: 10px 14px; font-size: 0.92rem; }
+  .logic-puzzle-area { padding: 12px 10px; }
+  .logic-puzzle-area .puzzle-item { width: 40px; height: 40px; font-size: 1.05rem; }
+  .puzzle-grid-cell { width: 36px; height: 36px; font-size: 0.9rem; }
+
+  /* Memory cards */
+  .memory-board { gap: 5px; padding: 10px; }
   .memory-card-back.emoji .memory-card-content { font-size: 1.3rem; }
-  .memory-card-content { font-size: 0.75rem; }
+  .memory-card-content { font-size: 0.78rem; }
   .memory-card-icon { font-size: 1.1rem; }
   .memory-levels-grid,
   .adventure-levels-grid,
-  .thinking-levels-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important; }
+  .thinking-levels-grid { grid-template-columns: repeat(2, 1fr) !important; }
+
+  /* Tab heroes */
   .tab-hero { padding: 14px 10px; margin-bottom: 12px; }
-  .tab-hero-icon { font-size: 1.6rem; }
-  .tab-hero-title { font-size: 1rem; }
-  .mlc-preview { font-size: 1.2rem; letter-spacing: 2px; min-height: 36px; }
+  .tab-hero-icon { font-size: 1.7rem; }
+  .tab-hero-title { font-size: 0.98rem; }
+  .tab-hero-desc { font-size: 0.76rem; }
+  .mlc-preview { font-size: 1.2rem; letter-spacing: 2px; min-height: 40px; }
 
-  .logic-option { padding: 10px 12px; font-size: 0.9rem; }
-  .logic-option-btn { padding: 8px 10px; font-size: 0.85rem; }
-  .puzzle-grid-cell { width: 34px; height: 34px; font-size: 0.9rem; }
+  /* Adventure d-pad */
+  .adv-dpad-btn { width: 48px; height: 48px; font-size: 1.1rem; border-radius: 10px; }
+  .adv-dpad-center { width: 48px; height: 48px; }
+  .adv-dpad { padding: 8px; gap: 3px; }
+  .adv-dpad-mid { gap: 3px; }
+  .adv-stat { font-size: 0.78rem; padding: 2px 7px; }
 
+  /* Thinking */
   .thinking-sortable { max-width: 100%; }
-  .adv-dpad-container { padding: 6px; border-width: 2px; }
-  .logic-desc { padding: 10px 12px; font-size: 0.85rem; }
+  .thinking-sort-item { padding: 9px 12px; font-size: 0.84rem; }
+  .thinking-step-btn { padding: 9px 12px; font-size: 0.82rem; }
+
+  .logic-desc { padding: 10px 12px; font-size: 0.84rem; }
+}
+
+/* ---------- Very small phone (≤ 380px) ---------- */
+@media (max-width: 380px) {
+  .tab-btn { padding: 6px 8px; font-size: 0.68rem; }
+  .top-bar { padding: 5px 8px; min-height: 42px; }
+  .star-badge { display: none; }
+  .btn-logout { padding: 4px 6px; font-size: 0.62rem; }
+
+  .levels-grid { gap: 6px; }
+  .level-card { padding: 10px 6px; border-radius: 10px; }
+  .level-card .level-number { width: 30px; height: 30px; font-size: 0.82rem; }
+
+  .typing-display { font-size: 0.88rem; }
+  .keyboard-visual { display: none; }
+
+  .adv-dpad-btn { width: 44px; height: 44px; font-size: 1rem; }
+  .adv-dpad-center { width: 44px; height: 44px; }
+
+  .memory-board { gap: 4px; padding: 6px; }
+  .memory-card-back.emoji .memory-card-content { font-size: 1.1rem; }
+  .memory-card-content { font-size: 0.7rem; }
+  .memory-card-icon { font-size: 1rem; }
+
+  .logic-option { padding: 9px 10px; font-size: 0.86rem; }
+  .logic-option-btn { padding: 8px 10px; font-size: 0.82rem; }
+  .puzzle-grid-cell { width: 32px; height: 32px; font-size: 0.85rem; }
+
+  .modal-card { padding: 18px 12px; max-width: 96%; }
+  .modal-card h2 { font-size: 1.1rem; }
+
+  /* Show emoji only on very small screens — hide text labels */
+  .btn-label,
+  .tab-label { display: none; }
 }
 
 /* ============ CROSSWORD ============ */
@@ -2409,6 +2541,8 @@ body {
   align-items: center;
   gap: 6px;
   width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 .cw-row {
   display: flex;
@@ -2537,6 +2671,7 @@ body {
   align-items: center;
   gap: 16px;
   padding: 24px;
+  width: 100%;
 }
 .sudoku-board {
   display: grid;
@@ -2547,8 +2682,10 @@ body {
   border-radius: 20px;
   box-shadow: 0 8px 32px rgba(108, 92, 231, 0.15);
   border: 3px solid #E8E4F8;
-  max-width: 420px;
+  max-width: min(420px, 100%);
   width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 .sudoku-cell {
   display: flex;
