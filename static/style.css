@@ -8,24 +8,28 @@
   --purple-dark: #5A4BD1;
   --pink: #FD79A8;
   --orange: #FDCB6E;
+  --orange-dark: #F39C12;
   --green: #00B894;
   --green-light: #55EFC4;
   --blue: #74B9FF;
   --blue-dark: #0984E3;
+  --teal: #00CEC9;
   --red: #FF7675;
   --red-dark: #D63031;
   --yellow: #FFEAA7;
+  --math-green: #00B894;
+  --math-orange: #E17055;
   --dark: #2D3436;
   --gray: #636E72;
   --gray-light: #B2BEC3;
   --gray-bg: #DFE6E9;
   --white: #FFFFFF;
-  --bg: #F8F9FD;
-  --radius: 16px;
-  --radius-sm: 10px;
-  --shadow: 0 4px 20px rgba(108, 92, 231, 0.15);
-  --shadow-lg: 0 8px 40px rgba(108, 92, 231, 0.2);
-  --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --bg: #F4F6FF;
+  --radius: 18px;
+  --radius-sm: 12px;
+  --shadow: 0 4px 24px rgba(108, 92, 231, 0.14);
+  --shadow-lg: 0 10px 48px rgba(108, 92, 231, 0.22);
+  --transition: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -58,33 +62,36 @@ button, [role="button"] {
 #screen-login {
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #6C5CE7 0%, #A29BFE 50%, #74B9FF 100%);
+  background: linear-gradient(145deg, #5A3FD6 0%, #7C5CEC 35%, #B06BE3 65%, #E078C8 100%);
   position: relative;
   overflow: hidden;
 }
 
 .login-card {
   background: var(--white);
-  border-radius: 24px;
-  padding: 48px 42px;
+  border-radius: 28px;
+  padding: 52px 44px;
   text-align: center;
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 20px 60px rgba(90, 63, 214, 0.35);
   z-index: 2;
-  max-width: 420px;
-  width: 90%;
+  max-width: 440px;
+  width: 92%;
+  border: 2px solid rgba(255,255,255,0.6);
 }
 .login-card h1 {
-  font-size: 1.7rem;
-  font-weight: 800;
-  margin: 16px 0 6px;
+  font-size: 1.85rem;
+  font-weight: 900;
+  margin: 18px 0 8px;
   color: var(--dark);
+  letter-spacing: -0.3px;
 }
 .login-card .subtitle {
   color: var(--gray);
-  font-size: 0.95rem;
-  margin-bottom: 24px;
+  font-size: 1rem;
+  margin-bottom: 28px;
+  font-weight: 600;
 }
-.logo-area { margin-bottom: 8px; }
+.logo-area { margin-bottom: 10px; }
 
 .input-group {
   display: flex;
@@ -230,13 +237,13 @@ button, [role="button"] {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 24px;
+  padding: 10px 20px;
   background: var(--white);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 16px rgba(0,0,0,0.08);
   z-index: 10;
   flex-shrink: 0;
-  min-height: 64px;
-  gap: 16px;
+  min-height: 60px;
+  gap: 12px;
 }
 .top-bar-left { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 .top-bar-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
@@ -309,11 +316,12 @@ button, [role="button"] {
   padding: 30px;
 }
 .section-title {
-  font-size: 1.6rem;
-  font-weight: 800;
+  font-size: 1.5rem;
+  font-weight: 900;
   text-align: center;
   margin-bottom: 24px;
   color: var(--dark);
+  letter-spacing: -0.3px;
 }
 .levels-grid {
   display: grid;
@@ -325,39 +333,50 @@ button, [role="button"] {
 .level-card {
   background: var(--white);
   border-radius: var(--radius);
-  padding: 24px 20px;
+  padding: 22px 18px 18px;
   text-align: center;
-  box-shadow: var(--shadow);
+  box-shadow: 0 3px 16px rgba(108, 92, 231, 0.1);
   cursor: pointer;
   transition: var(--transition);
   position: relative;
   overflow: hidden;
-  border: 3px solid transparent;
+  border: 2px solid transparent;
 }
-.level-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: var(--purple-light); }
-.level-card.locked { opacity: 0.5; cursor: not-allowed; }
-.level-card.locked:hover { transform: none; box-shadow: var(--shadow); border-color: transparent; }
+.level-card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--purple), var(--purple-light));
+  border-radius: 4px 4px 0 0;
+}
+.level-card:hover { transform: translateY(-5px); box-shadow: 0 12px 36px rgba(108, 92, 231, 0.2); border-color: var(--purple-light); }
+.level-card.locked { opacity: 0.45; cursor: not-allowed; filter: grayscale(0.3); }
+.level-card.locked:hover { transform: none; box-shadow: 0 3px 16px rgba(108, 92, 231, 0.1); border-color: transparent; }
 .level-card.completed { border-color: var(--green-light); }
+.level-card.completed::before { background: linear-gradient(90deg, var(--green), var(--green-light)); }
 
 .level-number {
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  background: var(--purple);
+  width: 54px;
+  height: 54px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--purple), var(--purple-light));
   color: var(--white);
   font-size: 1.4rem;
-  font-weight: 800;
+  font-weight: 900;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 12px;
+  margin: 0 auto 14px;
+  box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
 }
-.level-card.completed .level-number { background: var(--green); }
-.level-card.locked .level-number { background: var(--gray-light); }
+.level-card.completed .level-number { background: linear-gradient(135deg, var(--green), var(--green-light)); box-shadow: 0 4px 12px rgba(0, 184, 148, 0.3); }
+.level-card.locked .level-number { background: linear-gradient(135deg, var(--gray-light), var(--gray-bg)); box-shadow: none; }
 
-.level-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 6px; }
-.level-card p { font-size: 0.8rem; color: var(--gray); line-height: 1.4; }
-.level-stars { margin-top: 10px; font-size: 1.2rem; letter-spacing: 2px; }
+.level-card h3 { font-size: 1rem; font-weight: 800; margin-bottom: 6px; color: var(--dark); }
+.level-card p { font-size: 0.8rem; color: var(--gray); line-height: 1.5; }
+.level-desc-mini { font-size: 0.78rem; color: var(--gray); line-height: 1.4; margin-bottom: 4px; }
+.level-stars { margin-top: 10px; font-size: 1.15rem; letter-spacing: 3px; }
 
 /* ============ GAME LAYOUT ============ */
 #screen-game { flex-direction: column; }
@@ -663,10 +682,10 @@ button, [role="button"] {
 /* ============ TABS ============ */
 .tabs-bar {
   display: flex;
-  gap: 0;
+  gap: 4px;
   background: var(--white);
-  border-bottom: 2px solid var(--gray-bg);
-  padding: 0 20px;
+  border-bottom: 3px solid #EBEBF8;
+  padding: 6px 16px 0;
   flex-shrink: 0;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -675,9 +694,9 @@ button, [role="button"] {
 .tabs-bar::-webkit-scrollbar { display: none; }
 .tab-btn {
   font-family: inherit;
-  font-size: 1rem;
-  font-weight: 700;
-  padding: 12px 28px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  padding: 8px 14px 10px;
   background: none;
   border: none;
   border-bottom: 3px solid transparent;
@@ -686,11 +705,23 @@ button, [role="button"] {
   transition: var(--transition);
   white-space: nowrap;
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  border-radius: 12px 12px 0 0;
+  position: relative;
+  bottom: -3px;
 }
-.tab-btn:hover { color: var(--purple); }
+.tab-icon {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+.tab-btn:hover { color: var(--purple); background: #F4F2FF; }
 .tab-btn.active {
   color: var(--purple);
   border-bottom-color: var(--purple);
+  background: linear-gradient(180deg, #F0EEFF 0%, #FAF9FF 100%);
 }
 .tab-content { display: none; flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 .tab-content.active { display: block; }
@@ -2780,4 +2811,224 @@ button, [role="button"] {
   .sudoku-size-6 .sudoku-cell .sudoku-input { font-size: 1.1rem; }
   .sudoku-main { padding: 16px; }
   .sudoku-board { padding: 12px; }
+}
+
+/* ============ MATH GAME ============ */
+#screen-math { flex-direction: column; }
+
+.math-top-bar {
+  background: linear-gradient(135deg, #00B894, #00CEC9);
+  box-shadow: 0 4px 20px rgba(0, 184, 148, 0.35);
+}
+
+.math-game-bg {
+  background: linear-gradient(180deg, #E6FFF5 0%, #F0FFF9 30%, #F4F6FF 70%);
+}
+
+.math-hero {
+  background: linear-gradient(135deg, #00B894 0%, #00CEC9 50%, #0984E3 100%);
+  color: #FFF;
+}
+
+.math-tab-container .tab-hero { margin-bottom: 28px; }
+
+.math-levels-grid {
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important;
+}
+
+/* Math level card extras */
+.math-level-card { position: relative; }
+.math-level-card::before {
+  background: linear-gradient(90deg, var(--math-green), var(--teal)) !important;
+}
+.math-level-card.completed::before {
+  background: linear-gradient(90deg, var(--green), var(--green-light)) !important;
+}
+.math-card-icon {
+  font-size: 2.2rem;
+  margin-bottom: 8px;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.12));
+}
+.math-level-num {
+  background: linear-gradient(135deg, #00B894, #00CEC9) !important;
+  box-shadow: 0 4px 12px rgba(0, 184, 148, 0.35) !important;
+  border-radius: 14px !important;
+}
+.math-type-badge {
+  font-size: 0.8rem;
+  font-weight: 800;
+  margin: 4px 0 8px;
+  letter-spacing: 0.3px;
+}
+
+/* Math game area */
+.math-main {
+  max-width: 680px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+}
+
+.math-desc {
+  border-left-color: var(--math-green) !important;
+  background: linear-gradient(135deg, #fff, #F0FFF9) !important;
+}
+
+.math-visual {
+  background: linear-gradient(135deg, #F0FFF9, #E6FFF5);
+  border: 3px solid #B2F5EA;
+  border-radius: 20px;
+  padding: 20px 28px;
+  font-size: 1.8rem;
+  letter-spacing: 4px;
+  text-align: center;
+  min-height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  width: 100%;
+  box-shadow: 0 4px 16px rgba(0, 184, 148, 0.12);
+  word-break: break-all;
+  line-height: 1.6;
+}
+
+.math-problem-display {
+  background: var(--white);
+  border: 3px solid #B2F5EA;
+  border-radius: 24px;
+  padding: 24px 36px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 6px 24px rgba(0, 184, 148, 0.1);
+}
+
+.math-problem-equation {
+  font-size: 3rem;
+  font-weight: 900;
+  color: var(--dark);
+  letter-spacing: 2px;
+  line-height: 1.2;
+}
+
+/* Answer option buttons */
+.math-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  width: 100%;
+  max-width: 480px;
+}
+
+.math-option-btn {
+  font-family: inherit;
+  font-size: 2rem;
+  font-weight: 900;
+  padding: 22px 16px;
+  border-radius: 20px;
+  border: 3px solid #B2F5EA;
+  background: var(--white);
+  cursor: pointer;
+  transition: var(--transition);
+  text-align: center;
+  color: var(--dark);
+  box-shadow: 0 3px 12px rgba(0, 184, 148, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+.math-option-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(0,184,148,0.06), rgba(0,206,201,0.06));
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.math-option-btn:hover::before { opacity: 1; }
+.math-option-btn:nth-child(1) { border-color: #A29BFE; }
+.math-option-btn:nth-child(2) { border-color: #74B9FF; }
+.math-option-btn:nth-child(3) { border-color: #55EFC4; }
+.math-option-btn:nth-child(4) { border-color: #FDCB6E; }
+.math-option-btn:hover {
+  transform: translateY(-4px) scale(1.04);
+  box-shadow: 0 10px 28px rgba(0, 184, 148, 0.2);
+}
+.math-option-btn:active { transform: scale(0.97); }
+.math-option-btn.correct {
+  background: linear-gradient(135deg, #00B894, #55EFC4);
+  border-color: #00B894;
+  color: #FFF;
+  animation: correctBounce 0.5s ease;
+}
+.math-option-btn.wrong {
+  background: #FFEAEA;
+  border-color: var(--red);
+  color: var(--red-dark);
+  animation: shake 0.4s ease;
+}
+.math-option-btn:disabled { cursor: not-allowed; opacity: 0.6; }
+
+@media (max-width: 480px) {
+  .math-problem-equation { font-size: 2.2rem; }
+  .math-option-btn { font-size: 1.6rem; padding: 18px 12px; border-radius: 16px; }
+  .math-visual { font-size: 1.4rem; padding: 16px 18px; letter-spacing: 2px; }
+}
+
+/* ============ UI POLISH ============ */
+
+/* Better modal */
+.modal-card {
+  background: var(--white);
+  border-radius: 28px;
+  padding: 44px 38px;
+  text-align: center;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.18);
+  max-width: 420px;
+  width: 92%;
+  animation: modalIn 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes modalIn {
+  from { transform: scale(0.8) translateY(20px); opacity: 0; }
+  to { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+/* Better btn-primary */
+.btn-primary {
+  background: linear-gradient(135deg, var(--purple), var(--purple-light));
+  color: var(--white);
+  padding: 13px 30px;
+  font-size: 1rem;
+  border-radius: 14px;
+  box-shadow: 0 4px 14px rgba(108, 92, 231, 0.3);
+}
+.btn-primary:hover {
+  background: linear-gradient(135deg, var(--purple-dark), var(--purple));
+  box-shadow: 0 6px 20px rgba(108, 92, 231, 0.4);
+  transform: translateY(-1px);
+}
+
+/* Improved input */
+.input-group input {
+  padding: 16px 20px;
+  border: 2.5px solid var(--gray-bg);
+  border-radius: 14px;
+  font-size: 1.15rem;
+  font-family: inherit;
+  text-align: center;
+  outline: none;
+  transition: var(--transition);
+  background: #FAFAFF;
+}
+.input-group input:focus {
+  border-color: var(--purple);
+  background: var(--white);
+  box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.12);
+}
+
+/* Math tab hero colors */
+.sudoku-hero {
+  background: linear-gradient(135deg, #6C5CE7 0%, #A29BFE 100%);
 }

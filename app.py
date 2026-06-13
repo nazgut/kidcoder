@@ -5,7 +5,7 @@ import os
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 
-from game_data import LEVELS, LOGIC_PUZZLES, TYPING_LESSONS, QUIZ_QUESTIONS, MEMORY_PAIRS, THINKING_EXERCISES, CROSSWORD_PUZZLES, SUDOKU_PUZZLES
+from game_data import LEVELS, LOGIC_PUZZLES, TYPING_LESSONS, QUIZ_QUESTIONS, MEMORY_PAIRS, THINKING_EXERCISES, CROSSWORD_PUZZLES, SUDOKU_PUZZLES, MATH_PROBLEMS
 
 app = Flask(__name__, static_folder="static", static_url_path="")
 CORS(app)
@@ -35,7 +35,8 @@ def _load_progress(username: str) -> dict:
             "adventure_completed": [], "adventure_stars": {},
             "thinking_completed": [], "thinking_stars": {},
             "crossword_completed": [], "crossword_stars": {},
-            "sudoku_completed": [], "sudoku_stars": {}}
+            "sudoku_completed": [], "sudoku_stars": {},
+            "math_completed": [], "math_stars": {}}
 
 
 def _save_progress(username: str, data: dict):
@@ -160,6 +161,22 @@ def get_sudoku_puzzle(puzzle_id):
         if s["id"] == puzzle_id:
             return jsonify(s)
     return jsonify({"error": "Nie znaleziono sudoku"}), 404
+
+
+@app.route("/api/math", methods=["GET"])
+def get_math_problems():
+    """Return math problem summaries."""
+    summary = [{"id": m["id"], "title": m["title"], "description": m["description"], "type": m["type"]} for m in MATH_PROBLEMS]
+    return jsonify(summary)
+
+
+@app.route("/api/math/<int:problem_id>", methods=["GET"])
+def get_math_problem(problem_id):
+    """Return full math problem data."""
+    for m in MATH_PROBLEMS:
+        if m["id"] == problem_id:
+            return jsonify(m)
+    return jsonify({"error": "Nie znaleziono zadania"}), 404
 
 
 @app.route("/api/thinking", methods=["GET"])
@@ -293,6 +310,19 @@ def save_progress(username):
             progress["crossword_completed"].append(crossword_id)
         prev = progress["crossword_stars"].get(str(crossword_id), 0)
         progress["crossword_stars"][str(crossword_id)] = max(prev, crossword_stars)
+
+    # Math progress
+    math_id = data.get("math_id")
+    math_stars = data.get("math_stars", 1)
+    if math_id is not None:
+        if "math_completed" not in progress:
+            progress["math_completed"] = []
+        if "math_stars" not in progress:
+            progress["math_stars"] = {}
+        if math_id not in progress["math_completed"]:
+            progress["math_completed"].append(math_id)
+        prev = progress["math_stars"].get(str(math_id), 0)
+        progress["math_stars"][str(math_id)] = max(prev, math_stars)
 
     # Sudoku progress
     sudoku_id = data.get("sudoku_id")

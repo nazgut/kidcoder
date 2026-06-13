@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c \"from app import app; print\\('OK'\\)\")",
+      "Bash(python3 -c \"from game_data import MATH_PROBLEMS; print\\(f'OK: {len\\(MATH_PROBLEMS\\)} problems loaded'\\)\")",
+      "Bash(xargs cat)",
+      "Bash(pip3 show *)",
+      "Bash(pip3 install *)",
+      "Bash(python3 -c \"from app import app; print\\('Flask app OK'\\)\")",
+      "Bash(find /usr -name \"flask\" -type f 2>/dev/null | head -5; find /home/n -name \"flask\" -type f 2>/dev/null | head -5; ls /home/n/Projekty/kidcoder/__pycache__/*.cpython-* | head -3)",
+      "Read(//usr/**)",
+      "Read(//home/n/**)",
+      "Bash(/home/n/anaconda3/bin/python -c \"from app import app; print\\('Flask app OK'\\)\")",
+      "Bash(/home/n/anaconda3/bin/python app.py)",
+      "Bash(curl -s http://localhost:5010/api/math)",
+      "Bash(python3 -m json.tool)",
+      "Bash(curl -s http://localhost:5010/api/math/1)",
+      "Bash(curl -s -X POST http://localhost:5010/api/progress/TestUser -H \"Content-Type: application/json\" -d '{\"math_id\": 1, \"math_stars\": 3}')",
+      "Bash(kill %1)",
+      "Bash(mkdir -p /home/n/.claude/projects/-home-n-Projekty-kidcoder/memory)"
+    ],
+    "additionalDirectories": [
+      "/home/n/.claude/projects/-home-n-Projekty-kidcoder"
+    ]
+  }
+}

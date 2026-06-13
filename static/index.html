@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>KidCoder – Nauka Programowania!</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -53,19 +53,30 @@
     </div>
   </header>
   <div class="tabs-bar">
-    <button class="tab-btn active" data-tab="coding">🧩 <span class="tab-label">Kodowanie</span></button>
-    <button class="tab-btn" data-tab="typing">⌨️ <span class="tab-label">Pisanie</span></button>
-    <button class="tab-btn" data-tab="logic">🧠 <span class="tab-label">Logika</span></button>
-    <button class="tab-btn" data-tab="memory">🃏 <span class="tab-label">Memory</span></button>
-    <button class="tab-btn" data-tab="adventure">🗺️ <span class="tab-label">Przygoda</span></button>
-    <button class="tab-btn" data-tab="thinking">🤖 <span class="tab-label">Myślenie</span></button>
-    <button class="tab-btn" data-tab="sudoku">🔢 <span class="tab-label">Sudoku</span></button>
-    <button class="tab-btn" data-tab="diploma">🎓 <span class="tab-label">Dyplom</span></button>
+    <button class="tab-btn active" data-tab="coding"><span class="tab-icon">🧩</span><span class="tab-label">Kodowanie</span></button>
+    <button class="tab-btn" data-tab="math"><span class="tab-icon">🔢</span><span class="tab-label">Matematyka</span></button>
+    <button class="tab-btn" data-tab="typing"><span class="tab-icon">⌨️</span><span class="tab-label">Pisanie</span></button>
+    <button class="tab-btn" data-tab="logic"><span class="tab-icon">🧠</span><span class="tab-label">Logika</span></button>
+    <button class="tab-btn" data-tab="memory"><span class="tab-icon">🃏</span><span class="tab-label">Memory</span></button>
+    <button class="tab-btn" data-tab="adventure"><span class="tab-icon">🗺️</span><span class="tab-label">Przygoda</span></button>
+    <button class="tab-btn" data-tab="thinking"><span class="tab-icon">🤖</span><span class="tab-label">Myślenie</span></button>
+    <button class="tab-btn" data-tab="sudoku"><span class="tab-icon">🔣</span><span class="tab-label">Sudoku</span></button>
+    <button class="tab-btn" data-tab="diploma"><span class="tab-icon">🎓</span><span class="tab-label">Dyplom</span></button>
   </div>
   <div id="tab-coding" class="tab-content active">
     <div class="levels-container">
       <h2 class="section-title">Wybierz poziom</h2>
       <div id="levels-grid" class="levels-grid"></div>
+    </div>
+  </div>
+  <div id="tab-math" class="tab-content">
+    <div class="levels-container math-tab-container">
+      <div class="tab-hero math-hero">
+        <div class="tab-hero-icon">🔢</div>
+        <h2 class="tab-hero-title">Matematyka – mnożenie i dzielenie!</h2>
+        <p class="tab-hero-desc">Naucz się mnożyć i dzielić przez 2, 3, 4 i 5 w super zabawny sposób! ✖️➗</p>
+      </div>
+      <div id="math-grid" class="levels-grid math-levels-grid"></div>
     </div>
   </div>
   <div id="tab-typing" class="tab-content">
@@ -323,6 +334,41 @@
   </div>
 </div>
 
+<!-- EKRAN MATEMATYKI -->
+<div id="screen-math" class="screen">
+  <header class="top-bar math-top-bar">
+    <button id="btn-back-math" class="btn btn-back" title="Wróć">🔙 <span class="btn-label">Wróć</span></button>
+    <div class="level-info">
+      <span id="math-title" class="level-title-bar">Zadanie 1</span>
+    </div>
+    <div class="top-bar-right">
+      <button id="btn-math-hint" class="btn btn-action">💡 <span class="btn-label">Podpowiedź</span></button>
+    </div>
+  </header>
+  <div class="logic-layout math-game-bg">
+    <div class="logic-main math-main">
+      <p id="math-desc" class="logic-desc math-desc"></p>
+      <div id="math-visual" class="math-visual"></div>
+      <div id="math-problem-display" class="math-problem-display"></div>
+      <div id="math-options" class="math-options"></div>
+      <div id="math-feedback" class="logic-feedback"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL SUKCESU MATEMATYKI -->
+<div id="modal-math-success" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-stars" id="math-modal-stars"></div>
+    <h2>🎉 Brawo!</h2>
+    <p id="math-modal-message">Świetnie liczysz!</p>
+    <div class="modal-buttons">
+      <button id="btn-next-math" class="btn btn-primary">Następne zadanie ➡</button>
+      <button id="btn-math-to-list" class="btn btn-secondary">📋 Lista zadań</button>
+    </div>
+  </div>
+</div>
+
 <!-- EKRAN SUDOKU -->
 <div id="screen-sudoku" class="screen">
   <header class="top-bar sudoku-top-bar">
@@ -536,6 +582,7 @@
 <script src="js/thinking.js"></script>
 <script src="js/crossword.js"></script>
 <script src="js/sudoku.js"></script>
+<script src="js/math.js"></script>
 <script src="js/diploma.js"></script>
 </body>
 </html>

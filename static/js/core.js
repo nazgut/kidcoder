@@ -90,6 +90,12 @@ const state = {
   sudokuSolved: false,
   sudokuInputs: [],
   sudokuHintIndex: 0,
+  // math state
+  mathProblems: [],
+  currentMath: null,
+  mathAttempts: 0,
+  mathSolved: false,
+  mathHintIndex: 0,
 };
 
 const DIR_DELTAS = {
@@ -315,6 +321,22 @@ function initDom() {
   dom.btnNextSudoku      = $("#btn-next-sudoku");
   dom.btnSudokuToList    = $("#btn-sudoku-to-list");
 
+  // Math DOM refs
+  dom.mathGrid         = $("#math-grid");
+  dom.btnBackMath      = $("#btn-back-math");
+  dom.mathTitle        = $("#math-title");
+  dom.mathDesc         = $("#math-desc");
+  dom.mathVisual       = $("#math-visual");
+  dom.mathProblemDisplay = $("#math-problem-display");
+  dom.mathOptions      = $("#math-options");
+  dom.mathFeedback     = $("#math-feedback");
+  dom.btnMathHint      = $("#btn-math-hint");
+  dom.modalMathSuccess = $("#modal-math-success");
+  dom.mathModalStars   = $("#math-modal-stars");
+  dom.mathModalMessage = $("#math-modal-message");
+  dom.btnNextMath      = $("#btn-next-math");
+  dom.btnMathToList    = $("#btn-math-to-list");
+
   // Diploma & Logout
   dom.diplomaContainer = $("#diploma-container");
   dom.btnLogout        = $("#btn-logout");
@@ -360,11 +382,12 @@ async function onLogin() {
                        adventure_completed: [], adventure_stars: {},
                        thinking_completed: [], thinking_stars: {},
                        crossword_completed: [], crossword_stars: {},
-              sudoku_completed: [], sudoku_stars: {} };
+                       sudoku_completed: [], sudoku_stars: {},
+                       math_completed: [], math_stars: {} };
   }
 
   try {
-    const [levRes, typRes, logRes, quizRes, memRes, thkRes, cwRes, sudRes] = await Promise.all([
+    const [levRes, typRes, logRes, quizRes, memRes, thkRes, cwRes, sudRes, mathRes] = await Promise.all([
       fetch(`${API}/api/levels`),
       fetch(`${API}/api/typing`),
       fetch(`${API}/api/logic`),
@@ -373,6 +396,7 @@ async function onLogin() {
       fetch(`${API}/api/thinking`),
       fetch(`${API}/api/crossword`),
       fetch(`${API}/api/sudoku`),
+      fetch(`${API}/api/math`),
     ]);
     state.levels = await levRes.json();
     state.typingLessons = await typRes.json();
@@ -382,7 +406,8 @@ async function onLogin() {
     state.thinkingExercises = await thkRes.json();
     state.crosswordPuzzles = await cwRes.json();
     state.sudokuPuzzles = await sudRes.json();
-  } catch { state.levels = []; state.typingLessons = []; state.logicPuzzles = []; state.quizQuestions = []; state.memoryGames = []; state.thinkingExercises = []; state.crosswordPuzzles = []; state.sudokuPuzzles = []; }
+    state.mathProblems = await mathRes.json();
+  } catch { state.levels = []; state.typingLessons = []; state.logicPuzzles = []; state.quizQuestions = []; state.memoryGames = []; state.thinkingExercises = []; state.crosswordPuzzles = []; state.sudokuPuzzles = []; state.mathProblems = []; }
 
   dom.userDisplay.textContent = "👤 " + name;
   updateStarDisplay();
@@ -395,6 +420,7 @@ async function onLogin() {
   renderThinkingList();
   renderCrosswordList();
   renderSudokuList();
+  renderMathList();
   renderDiploma();
   showScreen("levels");
 }
@@ -408,7 +434,8 @@ function updateStarDisplay() {
   const thinkingStars = Object.values(state.progress.thinking_stars || {}).reduce((a, b) => a + b, 0);
   const crosswordStars = Object.values(state.progress.crossword_stars || {}).reduce((a, b) => a + b, 0);
   const sudokuStars = Object.values(state.progress.sudoku_stars || {}).reduce((a, b) => a + b, 0);
-  dom.totalStars.textContent = "⭐ " + (codingStars + typingStars + logicStars + memoryStars + adventureStars + thinkingStars + crosswordStars + sudokuStars);
+  const mathStars = Object.values(state.progress.math_stars || {}).reduce((a, b) => a + b, 0);
+  dom.totalStars.textContent = "⭐ " + (codingStars + typingStars + logicStars + memoryStars + adventureStars + thinkingStars + crosswordStars + sudokuStars + mathStars);
 }
 
 async function saveProgress(levelId, stars) {
@@ -503,6 +530,12 @@ function initEvents() {
   if (dom.btnNextSudoku) dom.btnNextSudoku.addEventListener("click", onNextSudoku);
   if (dom.btnSudokuToList) dom.btnSudokuToList.addEventListener("click", () => { hideModal("sudoku-success"); showScreen("levels"); renderSudokuList(); });
 
+  // Math events
+  if (dom.btnBackMath) dom.btnBackMath.addEventListener("click", () => { showScreen("levels"); renderMathList(); });
+  if (dom.btnMathHint) dom.btnMathHint.addEventListener("click", onMathHint);
+  if (dom.btnNextMath) dom.btnNextMath.addEventListener("click", onNextMath);
+  if (dom.btnMathToList) dom.btnMathToList.addEventListener("click", () => { hideModal("math-success"); showScreen("levels"); renderMathList(); });
+
   // Logout
   dom.btnLogout.addEventListener("click", onLogout);
 
@@ -529,7 +562,8 @@ function onLogout() {
                      adventure_completed: [], adventure_stars: {},
                      thinking_completed: [], thinking_stars: {},
                      crossword_completed: [], crossword_stars: {},
-                     sudoku_completed: [], sudoku_stars: {} };
+                     sudoku_completed: [], sudoku_stars: {},
+                     math_completed: [], math_stars: {} };
   state.levels = [];
   state.typingLessons = [];
   state.logicPuzzles = [];
@@ -538,6 +572,7 @@ function onLogout() {
   state.thinkingExercises = [];
   state.crosswordPuzzles = [];
   state.sudokuPuzzles = [];
+  state.mathProblems = [];
   state.currentLevel = null;
   state.currentTyping = null;
   state.currentLogic = null;
@@ -546,6 +581,7 @@ function onLogout() {
   state.currentThinking = null;
   state.currentCrossword = null;
   state.currentSudoku = null;
+  state.currentMath = null;
   state.program = [];
 
   dom.usernameInput.value = "";
