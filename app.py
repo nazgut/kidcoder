@@ -166,7 +166,7 @@ def get_sudoku_puzzle(puzzle_id):
 @app.route("/api/math", methods=["GET"])
 def get_math_problems():
     """Return math problem summaries."""
-    summary = [{"id": m["id"], "title": m["title"], "description": m["description"], "type": m["type"]} for m in MATH_PROBLEMS]
+    summary = [{"id": m["id"], "title": m["title"], "description": m.get("story", ""), "type": m["type"], "lesson_type": m.get("lesson_type", "practice")} for m in MATH_PROBLEMS]
     return jsonify(summary)
 
 
