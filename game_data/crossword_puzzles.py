@@ -68,7 +68,7 @@ CROSSWORD_PUZZLES = [
         "description": "Cztery słowa i jedno hasło!",
         "secret": "MAMA",
         "rows": [
-            {"word": "KOMIK", "clue": "Książeczka z obrazkami i dymkami", "highlight": 2},
+            {"word": "KOMIKS", "clue": "Książeczka z obrazkami i dymkami", "highlight": 2},
             {"word": "TRAWA", "clue": "Zielona, rośnie w ogródku", "highlight": 2},
             {"word": "RAMKA", "clue": "W niej trzymamy zdjęcie", "highlight": 2},
             {"word": "PLAMA", "clue": "Brudny ślad na koszulce", "highlight": 2},

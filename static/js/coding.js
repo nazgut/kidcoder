@@ -170,9 +170,22 @@ function onDropProgram(e) {
   dom.programArea.classList.remove("drag-over");
   try {
     const data = JSON.parse(e.dataTransfer.getData("text/plain"));
-    if (data.source === "program") return;
+    if (data.source === "program") {
+      // Dropped on empty space at bottom → move to end
+      moveProgramBlock(data.id, state.program.length);
+      return;
+    }
     addBlockToProgram(data.type);
   } catch {}
+}
+
+function moveProgramBlock(fromId, toIdx) {
+  const fromIdx = state.program.findIndex(b => b.id === fromId);
+  if (fromIdx === -1 || fromIdx === toIdx) return;
+  const [block] = state.program.splice(fromIdx, 1);
+  const insertIdx = fromIdx < toIdx ? toIdx - 1 : toIdx;
+  state.program.splice(insertIdx, 0, block);
+  renderProgram();
 }
 
 function renderProgram() {
@@ -200,8 +213,34 @@ function createProgramBlock(block, parentIdx) {
 
   el.setAttribute("draggable", "true");
   el.addEventListener("dragstart", e => {
+    e.stopPropagation();
     e.dataTransfer.setData("text/plain", JSON.stringify({ type: block.type, source: "program", id: block.id }));
     el.classList.add("dragging");
+  });
+  el.addEventListener("dragend", () => {
+    el.classList.remove("dragging");
+    el.classList.remove("drag-target");
+  });
+  el.addEventListener("dragover", e => {
+    e.preventDefault();
+    e.stopPropagation();
+    el.classList.add("drag-target");
+  });
+  el.addEventListener("dragleave", e => {
+    if (!el.contains(e.relatedTarget)) el.classList.remove("drag-target");
+  });
+  el.addEventListener("drop", e => {
+    e.preventDefault();
+    e.stopPropagation();
+    el.classList.remove("drag-target");
+    try {
+      const data = JSON.parse(e.dataTransfer.getData("text/plain"));
+      if (data.source === "program") {
+        moveProgramBlock(data.id, parseInt(el.dataset.programIdx));
+      } else {
+        addBlockToProgram(data.type);
+      }
+    } catch {}
   });
 
   if (block.children && def.container) {
