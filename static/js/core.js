@@ -96,6 +96,24 @@ const state = {
   mathAttempts: 0,
   mathSolved: false,
   mathHintIndex: 0,
+  // pixel state
+  pixelPuzzles: [],
+  currentPixel: null,
+  pixelPlayerGrid: [],
+  pixelSelectedColor: null,
+  pixelMistakes: 0,
+  pixelSolved: false,
+  pixelHintIndex: 0,
+  // cipher state
+  cipherPuzzles: [],
+  currentCipher: null,
+  cipherSlots: [],
+  cipherTiles: [],
+  cipherAttempts: 0,
+  cipherSolved: false,
+  cipherHintIndex: 0,
+  // avatar
+  avatar: "🙂",
 };
 
 const DIR_DELTAS = {
@@ -337,6 +355,41 @@ function initDom() {
   dom.btnNextMath      = $("#btn-next-math");
   dom.btnMathToList    = $("#btn-math-to-list");
 
+  // Pixel DOM refs
+  dom.pixelGrid        = $("#pixel-grid");
+  dom.btnBackPixel     = $("#btn-back-pixel");
+  dom.pixelTitle       = $("#pixel-title");
+  dom.pixelBoard       = $("#pixel-board");
+  dom.pixelPalette     = $("#pixel-palette");
+  dom.pixelFeedback    = $("#pixel-feedback");
+  dom.btnPixelHint     = $("#btn-pixel-hint");
+  dom.modalPixelSuccess = $("#modal-pixel-success");
+  dom.pixelModalStars  = $("#pixel-modal-stars");
+  dom.pixelModalMessage = $("#pixel-modal-message");
+  dom.btnNextPixel     = $("#btn-next-pixel");
+  dom.btnPixelToList   = $("#btn-pixel-to-list");
+
+  // Cipher DOM refs
+  dom.cipherGrid       = $("#cipher-grid");
+  dom.btnBackCipher    = $("#btn-back-cipher");
+  dom.cipherTitle      = $("#cipher-title");
+  dom.cipherStory      = $("#cipher-story");
+  dom.cipherKey        = $("#cipher-key");
+  dom.cipherMessage    = $("#cipher-message");
+  dom.cipherTiles      = $("#cipher-tiles");
+  dom.cipherFeedback   = $("#cipher-feedback");
+  dom.btnCipherHint    = $("#btn-cipher-hint");
+  dom.modalCipherSuccess = $("#modal-cipher-success");
+  dom.cipherModalStars = $("#cipher-modal-stars");
+  dom.cipherModalMessage = $("#cipher-modal-message");
+  dom.btnNextCipher    = $("#btn-next-cipher");
+  dom.btnCipherToList  = $("#btn-cipher-to-list");
+
+  // Avatar & XP
+  dom.avatarPicker     = $("#avatar-picker");
+  dom.xpBadge          = $("#xp-badge");
+  dom.xpFill           = $("#xp-fill");
+
   // Diploma & Logout
   dom.diplomaContainer = $("#diploma-container");
   dom.btnLogout        = $("#btn-logout");
@@ -387,7 +440,7 @@ async function onLogin() {
   }
 
   try {
-    const [levRes, typRes, logRes, quizRes, memRes, thkRes, cwRes, sudRes, mathRes] = await Promise.all([
+    const [levRes, typRes, logRes, quizRes, memRes, thkRes, cwRes, sudRes, mathRes, pixRes, ciphRes] = await Promise.all([
       fetch(`${API}/api/levels`),
       fetch(`${API}/api/typing`),
       fetch(`${API}/api/logic`),
@@ -397,6 +450,8 @@ async function onLogin() {
       fetch(`${API}/api/crossword`),
       fetch(`${API}/api/sudoku`),
       fetch(`${API}/api/math`),
+      fetch(`${API}/api/pixel`),
+      fetch(`${API}/api/cipher`),
     ]);
     state.levels = await levRes.json();
     state.typingLessons = await typRes.json();
@@ -407,9 +462,16 @@ async function onLogin() {
     state.crosswordPuzzles = await cwRes.json();
     state.sudokuPuzzles = await sudRes.json();
     state.mathProblems = await mathRes.json();
-  } catch { state.levels = []; state.typingLessons = []; state.logicPuzzles = []; state.quizQuestions = []; state.memoryGames = []; state.thinkingExercises = []; state.crosswordPuzzles = []; state.sudokuPuzzles = []; state.mathProblems = []; }
+    state.pixelPuzzles = await pixRes.json();
+    state.cipherPuzzles = await ciphRes.json();
+  } catch { state.levels = []; state.typingLessons = []; state.logicPuzzles = []; state.quizQuestions = []; state.memoryGames = []; state.thinkingExercises = []; state.crosswordPuzzles = []; state.sudokuPuzzles = []; state.mathProblems = []; state.pixelPuzzles = []; state.cipherPuzzles = []; }
 
-  dom.userDisplay.textContent = "👤 " + name;
+  // Zapamiętaj wybrany awatar dla tego imienia
+  const savedAvatar = localStorage.getItem(`kidcoder_avatar_${name}`);
+  if (savedAvatar && !state.avatarTouched) state.avatar = savedAvatar;
+  localStorage.setItem(`kidcoder_avatar_${name}`, state.avatar);
+
+  dom.userDisplay.textContent = state.avatar + " " + name;
   updateStarDisplay();
   renderLevels();
   renderTypingLessons();
@@ -421,6 +483,8 @@ async function onLogin() {
   renderCrosswordList();
   renderSudokuList();
   renderMathList();
+  renderPixelList();
+  renderCipherList();
   renderDiploma();
   showScreen("levels");
 }
@@ -435,7 +499,32 @@ function updateStarDisplay() {
   const crosswordStars = Object.values(state.progress.crossword_stars || {}).reduce((a, b) => a + b, 0);
   const sudokuStars = Object.values(state.progress.sudoku_stars || {}).reduce((a, b) => a + b, 0);
   const mathStars = Object.values(state.progress.math_stars || {}).reduce((a, b) => a + b, 0);
-  dom.totalStars.textContent = "⭐ " + (codingStars + typingStars + logicStars + memoryStars + adventureStars + thinkingStars + crosswordStars + sudokuStars + mathStars);
+  const pixelStars = Object.values(state.progress.pixel_stars || {}).reduce((a, b) => a + b, 0);
+  const cipherStars = Object.values(state.progress.cipher_stars || {}).reduce((a, b) => a + b, 0);
+  const total = codingStars + typingStars + logicStars + memoryStars + adventureStars + thinkingStars + crosswordStars + sudokuStars + mathStars + pixelStars + cipherStars;
+  dom.totalStars.textContent = "⭐ " + total;
+  updateXpBadge(total);
+}
+
+// ============ POZIOM GRACZA (XP) ============
+const XP_PER_LEVEL = 15;
+
+function updateXpBadge(totalStars) {
+  if (!dom.xpBadge) return;
+  const level = Math.floor(totalStars / XP_PER_LEVEL) + 1;
+  const into = totalStars % XP_PER_LEVEL;
+  const prevLevel = state.playerLevel;   // undefined przy pierwszym wywołaniu po zalogowaniu
+  state.playerLevel = level;
+
+  dom.xpBadge.querySelector(".xp-level").textContent = `Poz. ${level}`;
+  if (dom.xpFill) dom.xpFill.style.width = `${Math.round((into / XP_PER_LEVEL) * 100)}%`;
+
+  if (prevLevel !== undefined && level > prevLevel && typeof Fun !== "undefined") {
+    Fun.sound("levelup");
+    Fun.confetti(60);
+    dom.xpBadge.classList.add("level-up");
+    setTimeout(() => dom.xpBadge.classList.remove("level-up"), 1200);
+  }
 }
 
 async function saveProgress(levelId, stars) {
@@ -536,6 +625,30 @@ function initEvents() {
   if (dom.btnNextMath) dom.btnNextMath.addEventListener("click", onNextMath);
   if (dom.btnMathToList) dom.btnMathToList.addEventListener("click", () => { hideModal("math-success"); showScreen("levels"); renderMathList(); });
 
+  // Pixel events
+  if (dom.btnBackPixel) dom.btnBackPixel.addEventListener("click", () => { showScreen("levels"); renderPixelList(); });
+  if (dom.btnPixelHint) dom.btnPixelHint.addEventListener("click", onPixelHint);
+  if (dom.btnNextPixel) dom.btnNextPixel.addEventListener("click", onNextPixel);
+  if (dom.btnPixelToList) dom.btnPixelToList.addEventListener("click", () => { hideModal("pixel-success"); showScreen("levels"); renderPixelList(); });
+
+  // Cipher events
+  if (dom.btnBackCipher) dom.btnBackCipher.addEventListener("click", () => { showScreen("levels"); renderCipherList(); });
+  if (dom.btnCipherHint) dom.btnCipherHint.addEventListener("click", onCipherHint);
+  if (dom.btnNextCipher) dom.btnNextCipher.addEventListener("click", onNextCipher);
+  if (dom.btnCipherToList) dom.btnCipherToList.addEventListener("click", () => { hideModal("cipher-success"); showScreen("levels"); renderCipherList(); });
+
+  // Avatar picker
+  if (dom.avatarPicker) {
+    dom.avatarPicker.querySelectorAll(".avatar-option").forEach(btn => {
+      btn.addEventListener("click", () => {
+        state.avatar = btn.dataset.avatar;
+        state.avatarTouched = true;
+        dom.avatarPicker.querySelectorAll(".avatar-option").forEach(b => b.classList.remove("selected"));
+        btn.classList.add("selected");
+      });
+    });
+  }
+
   // Logout
   dom.btnLogout.addEventListener("click", onLogout);
 
@@ -563,7 +676,9 @@ function onLogout() {
                      thinking_completed: [], thinking_stars: {},
                      crossword_completed: [], crossword_stars: {},
                      sudoku_completed: [], sudoku_stars: {},
-                     math_completed: [], math_stars: {} };
+                     math_completed: [], math_stars: {},
+                     pixel_completed: [], pixel_stars: {},
+                     cipher_completed: [], cipher_stars: {} };
   state.levels = [];
   state.typingLessons = [];
   state.logicPuzzles = [];
@@ -582,11 +697,19 @@ function onLogout() {
   state.currentCrossword = null;
   state.currentSudoku = null;
   state.currentMath = null;
+  state.pixelPuzzles = [];
+  state.currentPixel = null;
+  state.cipherPuzzles = [];
+  state.currentCipher = null;
+  state.playerLevel = undefined;
+  state.avatarTouched = false;
   state.program = [];
 
   dom.usernameInput.value = "";
   dom.userDisplay.textContent = "👤 Gracz";
   dom.totalStars.textContent = "⭐ 0";
+  if (dom.xpBadge) dom.xpBadge.querySelector(".xp-level").textContent = "Poz. 1";
+  if (dom.xpFill) dom.xpFill.style.width = "0%";
 
   dom.tabBtns.forEach(b => b.classList.remove("active"));
   dom.tabBtns[0]?.classList.add("active");
