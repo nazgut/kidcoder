@@ -5,7 +5,7 @@ import os
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 
-from game_data import LEVELS, LOGIC_PUZZLES, TYPING_LESSONS, QUIZ_QUESTIONS, MEMORY_PAIRS, THINKING_EXERCISES, CROSSWORD_PUZZLES, SUDOKU_PUZZLES, MATH_PROBLEMS
+from game_data import LEVELS, LOGIC_PUZZLES, TYPING_LESSONS, QUIZ_QUESTIONS, MEMORY_PAIRS, THINKING_EXERCISES, CROSSWORD_PUZZLES, SUDOKU_PUZZLES, MATH_PROBLEMS, PIXEL_PUZZLES, CIPHER_PUZZLES
 
 app = Flask(__name__, static_folder="static", static_url_path="")
 CORS(app)
@@ -36,7 +36,9 @@ def _load_progress(username: str) -> dict:
             "thinking_completed": [], "thinking_stars": {},
             "crossword_completed": [], "crossword_stars": {},
             "sudoku_completed": [], "sudoku_stars": {},
-            "math_completed": [], "math_stars": {}}
+            "math_completed": [], "math_stars": {},
+            "pixel_completed": [], "pixel_stars": {},
+            "cipher_completed": [], "cipher_stars": {}}
 
 
 def _save_progress(username: str, data: dict):
@@ -177,6 +179,38 @@ def get_math_problem(problem_id):
         if m["id"] == problem_id:
             return jsonify(m)
     return jsonify({"error": "Nie znaleziono zadania"}), 404
+
+
+@app.route("/api/pixel", methods=["GET"])
+def get_pixel_puzzles():
+    """Return pixel art puzzle summaries."""
+    summary = [{"id": p["id"], "title": p["title"], "description": p["description"], "size": p["size"]} for p in PIXEL_PUZZLES]
+    return jsonify(summary)
+
+
+@app.route("/api/pixel/<int:puzzle_id>", methods=["GET"])
+def get_pixel_puzzle(puzzle_id):
+    """Return full pixel art puzzle data."""
+    for p in PIXEL_PUZZLES:
+        if p["id"] == puzzle_id:
+            return jsonify(p)
+    return jsonify({"error": "Nie znaleziono obrazka"}), 404
+
+
+@app.route("/api/cipher", methods=["GET"])
+def get_cipher_puzzles():
+    """Return cipher puzzle summaries."""
+    summary = [{"id": c["id"], "title": c["title"], "description": c["description"]} for c in CIPHER_PUZZLES]
+    return jsonify(summary)
+
+
+@app.route("/api/cipher/<int:puzzle_id>", methods=["GET"])
+def get_cipher_puzzle(puzzle_id):
+    """Return full cipher puzzle data."""
+    for c in CIPHER_PUZZLES:
+        if c["id"] == puzzle_id:
+            return jsonify(c)
+    return jsonify({"error": "Nie znaleziono szyfru"}), 404
 
 
 @app.route("/api/thinking", methods=["GET"])
@@ -336,6 +370,32 @@ def save_progress(username):
             progress["sudoku_completed"].append(sudoku_id)
         prev = progress["sudoku_stars"].get(str(sudoku_id), 0)
         progress["sudoku_stars"][str(sudoku_id)] = max(prev, sudoku_stars)
+
+    # Pixel art progress
+    pixel_id = data.get("pixel_id")
+    pixel_stars = data.get("pixel_stars", 1)
+    if pixel_id is not None:
+        if "pixel_completed" not in progress:
+            progress["pixel_completed"] = []
+        if "pixel_stars" not in progress:
+            progress["pixel_stars"] = {}
+        if pixel_id not in progress["pixel_completed"]:
+            progress["pixel_completed"].append(pixel_id)
+        prev = progress["pixel_stars"].get(str(pixel_id), 0)
+        progress["pixel_stars"][str(pixel_id)] = max(prev, pixel_stars)
+
+    # Cipher progress
+    cipher_id = data.get("cipher_id")
+    cipher_stars = data.get("cipher_stars", 1)
+    if cipher_id is not None:
+        if "cipher_completed" not in progress:
+            progress["cipher_completed"] = []
+        if "cipher_stars" not in progress:
+            progress["cipher_stars"] = {}
+        if cipher_id not in progress["cipher_completed"]:
+            progress["cipher_completed"].append(cipher_id)
+        prev = progress["cipher_stars"].get(str(cipher_id), 0)
+        progress["cipher_stars"][str(cipher_id)] = max(prev, cipher_stars)
 
     _save_progress(username, progress)
     return jsonify(progress)

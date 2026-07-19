@@ -10,7 +10,7 @@ import unittest
 os.environ["KIDCODER_TEST"] = "1"
 
 from app import app, LEVELS, TYPING_LESSONS, LOGIC_PUZZLES, QUIZ_QUESTIONS, DATA_DIR
-from game_data import CROSSWORD_PUZZLES
+from game_data import CROSSWORD_PUZZLES, PIXEL_PUZZLES, CIPHER_PUZZLES
 
 
 class TestBase(unittest.TestCase):
@@ -410,6 +410,149 @@ class TestCrosswordAPI(TestBase):
         data = res.get_json()
         self.assertIn(1, data["crossword_completed"])
         self.assertEqual(data["crossword_stars"]["1"], 3)
+
+
+# ============ PIXEL ART API ============
+
+class TestPixelAPI(TestBase):
+
+    def test_get_pixel_puzzles(self):
+        res = self.client.get("/api/pixel")
+        self.assertEqual(res.status_code, 200)
+        data = res.get_json()
+        self.assertIsInstance(data, list)
+        self.assertEqual(len(data), len(PIXEL_PUZZLES))
+
+    def test_pixel_summary_fields(self):
+        res = self.client.get("/api/pixel")
+        for p in res.get_json():
+            self.assertIn("id", p)
+            self.assertIn("title", p)
+            self.assertIn("description", p)
+            self.assertIn("size", p)
+
+    def test_get_single_pixel_puzzle(self):
+        res = self.client.get("/api/pixel/1")
+        self.assertEqual(res.status_code, 200)
+        data = res.get_json()
+        self.assertEqual(data["id"], 1)
+        self.assertIn("grid", data)
+        self.assertIn("palette", data)
+
+    def test_get_missing_pixel_returns_404(self):
+        res = self.client.get("/api/pixel/999")
+        self.assertEqual(res.status_code, 404)
+
+    def test_pixel_unique_ids(self):
+        ids = [p["id"] for p in PIXEL_PUZZLES]
+        self.assertEqual(len(ids), len(set(ids)))
+
+    def test_pixel_grid_matches_size(self):
+        for p in PIXEL_PUZZLES:
+            self.assertEqual(len(p["grid"]), p["size"],
+                             f"Pixel {p['id']}: row count != size")
+            for i, row in enumerate(p["grid"]):
+                self.assertEqual(len(row), p["size"],
+                                 f"Pixel {p['id']} row {i}: width != size")
+
+    def test_pixel_grid_chars_in_palette(self):
+        for p in PIXEL_PUZZLES:
+            allowed = set(p["palette"].keys()) | {"."}
+            for i, row in enumerate(p["grid"]):
+                for ch in row:
+                    self.assertIn(ch, allowed,
+                                  f"Pixel {p['id']} row {i}: char '{ch}' not in palette")
+
+    def test_pixel_palette_colors_used(self):
+        """Every palette colour must appear somewhere in the grid."""
+        for p in PIXEL_PUZZLES:
+            used = set("".join(p["grid"]))
+            for letter in p["palette"]:
+                self.assertIn(letter, used,
+                              f"Pixel {p['id']}: palette colour '{letter}' never used")
+
+    def test_pixel_hints_present(self):
+        for p in PIXEL_PUZZLES:
+            self.assertIsInstance(p["hints"], list)
+            self.assertTrue(len(p["hints"]) > 0, f"Pixel {p['id']}: needs hints")
+
+    def test_pixel_progress_saving(self):
+        self.client.post("/api/progress/testpx", json={"pixel_id": 1, "pixel_stars": 3})
+        res = self.client.get("/api/progress/testpx")
+        data = res.get_json()
+        self.assertIn(1, data["pixel_completed"])
+        self.assertEqual(data["pixel_stars"]["1"], 3)
+
+
+# ============ CIPHER API ============
+
+class TestCipherAPI(TestBase):
+
+    def test_get_cipher_puzzles(self):
+        res = self.client.get("/api/cipher")
+        self.assertEqual(res.status_code, 200)
+        data = res.get_json()
+        self.assertIsInstance(data, list)
+        self.assertEqual(len(data), len(CIPHER_PUZZLES))
+
+    def test_cipher_summary_fields(self):
+        res = self.client.get("/api/cipher")
+        for c in res.get_json():
+            self.assertIn("id", c)
+            self.assertIn("title", c)
+            self.assertIn("description", c)
+
+    def test_get_single_cipher(self):
+        res = self.client.get("/api/cipher/1")
+        self.assertEqual(res.status_code, 200)
+        data = res.get_json()
+        self.assertEqual(data["id"], 1)
+        self.assertIn("word", data)
+        self.assertIn("key", data)
+
+    def test_get_missing_cipher_returns_404(self):
+        res = self.client.get("/api/cipher/999")
+        self.assertEqual(res.status_code, 404)
+
+    def test_cipher_unique_ids(self):
+        ids = [c["id"] for c in CIPHER_PUZZLES]
+        self.assertEqual(len(ids), len(set(ids)))
+
+    def test_cipher_key_covers_word(self):
+        for c in CIPHER_PUZZLES:
+            for letter in set(c["word"]):
+                self.assertIn(letter, c["key"],
+                              f"Cipher {c['id']}: letter '{letter}' missing from key")
+
+    def test_cipher_word_uppercase(self):
+        for c in CIPHER_PUZZLES:
+            self.assertEqual(c["word"], c["word"].upper(),
+                             f"Cipher {c['id']}: word must be uppercase")
+
+    def test_cipher_symbols_unique(self):
+        """Two letters must never share a symbol within one key."""
+        for c in CIPHER_PUZZLES:
+            symbols = list(c["key"].values())
+            self.assertEqual(len(symbols), len(set(symbols)),
+                             f"Cipher {c['id']}: duplicate symbols in key")
+
+    def test_cipher_decoys_not_in_word(self):
+        for c in CIPHER_PUZZLES:
+            for d in c.get("decoys", []):
+                self.assertNotIn(d, c["word"],
+                                 f"Cipher {c['id']}: decoy '{d}' is part of the word")
+
+    def test_cipher_hints_present(self):
+        for c in CIPHER_PUZZLES:
+            self.assertIsInstance(c["hints"], list)
+            self.assertTrue(len(c["hints"]) > 0, f"Cipher {c['id']}: needs hints")
+
+    def test_cipher_progress_saving(self):
+        self.client.post("/api/progress/testciph", json={"cipher_id": 2, "cipher_stars": 2})
+        res = self.client.get("/api/progress/testciph")
+        data = res.get_json()
+        self.assertIn(2, data["cipher_completed"])
+        self.assertEqual(data["cipher_stars"]["2"], 2)
 
 
 # ============ PROGRESS API ============

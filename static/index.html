@@ -23,6 +23,19 @@
     </div>
     <h1>Witaj, młody koderze! 🚀</h1>
     <p class="subtitle">Wpisz swoje imię, żeby rozpocząć przygodę</p>
+    <p class="avatar-label">Wybierz swojego bohatera:</p>
+    <div id="avatar-picker" class="avatar-picker">
+      <button class="avatar-option selected" data-avatar="🙂">🙂</button>
+      <button class="avatar-option" data-avatar="🦊">🦊</button>
+      <button class="avatar-option" data-avatar="🐱">🐱</button>
+      <button class="avatar-option" data-avatar="🐼">🐼</button>
+      <button class="avatar-option" data-avatar="🦄">🦄</button>
+      <button class="avatar-option" data-avatar="🐲">🐲</button>
+      <button class="avatar-option" data-avatar="🤖">🤖</button>
+      <button class="avatar-option" data-avatar="🦸">🦸</button>
+      <button class="avatar-option" data-avatar="🧙">🧙</button>
+      <button class="avatar-option" data-avatar="👽">👽</button>
+    </div>
     <div class="input-group">
       <input type="text" id="username-input" placeholder="Twoje imię..." maxlength="20" autocomplete="off">
       <button id="btn-start" class="btn btn-primary btn-lg">Zaczynamy!</button>
@@ -48,7 +61,9 @@
     </div>
     <div class="top-bar-right">
       <span id="user-display" class="user-badge">👤 Gracz</span>
+      <span id="xp-badge" class="xp-badge"><span class="xp-level">Poz. 1</span><span class="xp-bar"><span id="xp-fill" class="xp-fill"></span></span></span>
       <span id="total-stars" class="star-badge">⭐ 0</span>
+      <button id="btn-sound" class="btn btn-small btn-sound" title="Dźwięk">🔊</button>
       <button id="btn-logout" class="btn btn-small btn-logout" title="Wyloguj">🚦 <span class="btn-label">Wyloguj</span></button>
     </div>
   </header>
@@ -61,6 +76,8 @@
     <button class="tab-btn" data-tab="adventure"><span class="tab-icon">🗺️</span><span class="tab-label">Przygoda</span></button>
     <button class="tab-btn" data-tab="thinking"><span class="tab-icon">🤖</span><span class="tab-label">Myślenie</span></button>
     <button class="tab-btn" data-tab="sudoku"><span class="tab-icon">🔣</span><span class="tab-label">Sudoku</span></button>
+    <button class="tab-btn" data-tab="pixel"><span class="tab-icon">🎨</span><span class="tab-label">Piksele</span></button>
+    <button class="tab-btn" data-tab="cipher"><span class="tab-icon">🕵️</span><span class="tab-label">Szyfry</span></button>
     <button class="tab-btn" data-tab="diploma"><span class="tab-icon">🎓</span><span class="tab-label">Dyplom</span></button>
   </div>
   <div id="tab-coding" class="tab-content active">
@@ -137,6 +154,26 @@
         <p class="tab-hero-desc">Wypełnij siatkę liczbami – każda liczba może wystąpić tylko raz w wierszu, kolumnie i bloku!</p>
       </div>
       <div id="sudoku-grid" class="levels-grid sudoku-levels-grid"></div>
+    </div>
+  </div>
+  <div id="tab-pixel" class="tab-content">
+    <div class="levels-container pixel-tab-container">
+      <div class="tab-hero pixel-hero">
+        <div class="tab-hero-icon">🎨</div>
+        <h2 class="tab-hero-title">Piksele – maluj kodem!</h2>
+        <p class="tab-hero-desc">Odczytaj kod wiersza i pomaluj piksele, aby odkryć ukryty obrazek! 🖼️</p>
+      </div>
+      <div id="pixel-grid" class="levels-grid pixel-levels-grid"></div>
+    </div>
+  </div>
+  <div id="tab-cipher" class="tab-content">
+    <div class="levels-container cipher-tab-container">
+      <div class="tab-hero cipher-hero">
+        <div class="tab-hero-icon">🕵️</div>
+        <h2 class="tab-hero-title">Tajne szyfry</h2>
+        <p class="tab-hero-desc">Zostań agentem! Użyj klucza symboli, aby odszyfrować sekretne słowa 🔐</p>
+      </div>
+      <div id="cipher-grid" class="levels-grid cipher-levels-grid"></div>
     </div>
   </div>
   <div id="tab-diploma" class="tab-content">
@@ -403,6 +440,75 @@
   </div>
 </div>
 
+<!-- EKRAN PIKSELI -->
+<div id="screen-pixel" class="screen">
+  <header class="top-bar pixel-top-bar">
+    <button id="btn-back-pixel" class="btn btn-back" title="Wróć">🔙 <span class="btn-label">Wróć</span></button>
+    <div class="level-info">
+      <span id="pixel-title" class="level-title-bar">Piksele</span>
+    </div>
+    <div class="top-bar-right">
+      <button id="btn-pixel-hint" class="btn btn-action">💡 <span class="btn-label">Podpowiedź</span></button>
+    </div>
+  </header>
+  <div class="logic-layout pixel-game-bg">
+    <div class="logic-main pixel-main">
+      <p class="pixel-instruction">Odczytaj kod obok wiersza i pomaluj pola. Kiedy wiersz się zgadza – zaświeci się na zielono! ✨</p>
+      <div id="pixel-palette" class="pixel-palette"></div>
+      <div id="pixel-board" class="pixel-board"></div>
+      <div id="pixel-feedback" class="logic-feedback"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL SUKCESU PIKSELI -->
+<div id="modal-pixel-success" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-stars" id="pixel-modal-stars"></div>
+    <h2>🎨 Brawo!</h2>
+    <p id="pixel-modal-message">Obrazek gotowy!</p>
+    <div class="modal-buttons">
+      <button id="btn-next-pixel" class="btn btn-primary">Następny obrazek ➡</button>
+      <button id="btn-pixel-to-list" class="btn btn-secondary">📋 Lista obrazków</button>
+    </div>
+  </div>
+</div>
+
+<!-- EKRAN SZYFRÓW -->
+<div id="screen-cipher" class="screen">
+  <header class="top-bar cipher-top-bar">
+    <button id="btn-back-cipher" class="btn btn-back" title="Wróć">🔙 <span class="btn-label">Wróć</span></button>
+    <div class="level-info">
+      <span id="cipher-title" class="level-title-bar">Szyfry</span>
+    </div>
+    <div class="top-bar-right">
+      <button id="btn-cipher-hint" class="btn btn-action">💡 <span class="btn-label">Podpowiedź</span></button>
+    </div>
+  </header>
+  <div class="logic-layout cipher-game-bg">
+    <div class="logic-main cipher-main">
+      <p id="cipher-story" class="cipher-story"></p>
+      <div id="cipher-key" class="cipher-key"></div>
+      <div id="cipher-message" class="cipher-message"></div>
+      <div id="cipher-tiles" class="cipher-tiles"></div>
+      <div id="cipher-feedback" class="logic-feedback"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL SUKCESU SZYFRÓW -->
+<div id="modal-cipher-success" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-stars" id="cipher-modal-stars"></div>
+    <h2>🕵️ Szyfr złamany!</h2>
+    <p id="cipher-modal-message">Świetna robota, agencie!</p>
+    <div class="modal-buttons">
+      <button id="btn-next-cipher" class="btn btn-primary">Następna misja ➡</button>
+      <button id="btn-cipher-to-list" class="btn btn-secondary">📋 Lista misji</button>
+    </div>
+  </div>
+</div>
+
 <!-- EKRAN MYŚLENIA KOMPUTEROWEGO -->
 <div id="screen-thinking" class="screen">
   <header class="top-bar thinking-top-bar">
@@ -584,6 +690,9 @@
 <script src="js/crossword.js"></script>
 <script src="js/sudoku.js"></script>
 <script src="js/math.js"></script>
+<script src="js/pixel.js"></script>
+<script src="js/cipher.js"></script>
 <script src="js/diploma.js"></script>
+<script src="js/fun.js"></script>
 </body>
 </html>
