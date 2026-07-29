@@ -112,6 +112,28 @@ const state = {
   cipherAttempts: 0,
   cipherSolved: false,
   cipherHintIndex: 0,
+  // binary state
+  binaryPuzzles: [],
+  currentBinary: null,
+  binaryOn: [],
+  binaryAttempts: 0,
+  binarySolved: false,
+  binaryHintIndex: 0,
+  // melody state
+  melodyGames: [],
+  currentMelody: null,
+  melodySequence: [],
+  melodyInputPos: 0,
+  melodyMistakes: 0,
+  melodyPlaying: false,
+  melodySolved: false,
+  melodyHintIndex: 0,
+  // debug state
+  debugPuzzles: [],
+  currentDebug: null,
+  debugAttempts: 0,
+  debugSolved: false,
+  debugHintIndex: 0,
   // avatar
   avatar: "🙂",
 };
@@ -385,6 +407,53 @@ function initDom() {
   dom.btnNextCipher    = $("#btn-next-cipher");
   dom.btnCipherToList  = $("#btn-cipher-to-list");
 
+  // Binary DOM refs
+  dom.binaryGrid       = $("#binary-grid");
+  dom.btnBackBinary    = $("#btn-back-binary");
+  dom.binaryTitle      = $("#binary-title");
+  dom.binaryTarget     = $("#binary-target");
+  dom.binaryBulbs      = $("#binary-bulbs");
+  dom.binarySum        = $("#binary-sum");
+  dom.binaryFeedback   = $("#binary-feedback");
+  dom.btnBinaryHint    = $("#btn-binary-hint");
+  dom.btnBinaryCheck   = $("#btn-binary-check");
+  dom.modalBinarySuccess = $("#modal-binary-success");
+  dom.binaryModalStars = $("#binary-modal-stars");
+  dom.binaryModalMessage = $("#binary-modal-message");
+  dom.btnNextBinary    = $("#btn-next-binary");
+  dom.btnBinaryToList  = $("#btn-binary-to-list");
+
+  // Melody DOM refs
+  dom.melodyGrid       = $("#melody-grid");
+  dom.btnBackMelody    = $("#btn-back-melody");
+  dom.melodyTitle      = $("#melody-title");
+  dom.melodyStatus     = $("#melody-status");
+  dom.melodyPads       = $("#melody-pads");
+  dom.melodyProgress   = $("#melody-progress");
+  dom.melodyFeedback   = $("#melody-feedback");
+  dom.btnMelodyPlay    = $("#btn-melody-play");
+  dom.btnMelodyHint    = $("#btn-melody-hint");
+  dom.modalMelodySuccess = $("#modal-melody-success");
+  dom.melodyModalStars = $("#melody-modal-stars");
+  dom.melodyModalMessage = $("#melody-modal-message");
+  dom.btnNextMelody    = $("#btn-next-melody");
+  dom.btnMelodyToList  = $("#btn-melody-to-list");
+
+  // Debug DOM refs
+  dom.debugGrid        = $("#debug-grid");
+  dom.btnBackDebug     = $("#btn-back-debug");
+  dom.debugTitle       = $("#debug-title");
+  dom.debugStory       = $("#debug-story");
+  dom.debugSteps       = $("#debug-steps");
+  dom.debugFeedback    = $("#debug-feedback");
+  dom.btnDebugHint     = $("#btn-debug-hint");
+  dom.modalDebugSuccess = $("#modal-debug-success");
+  dom.debugModalStars  = $("#debug-modal-stars");
+  dom.debugModalMessage = $("#debug-modal-message");
+  dom.debugExplanation = $("#debug-explanation");
+  dom.btnNextDebug     = $("#btn-next-debug");
+  dom.btnDebugToList   = $("#btn-debug-to-list");
+
   // Avatar & XP
   dom.avatarPicker     = $("#avatar-picker");
   dom.xpBadge          = $("#xp-badge");
@@ -440,7 +509,7 @@ async function onLogin() {
   }
 
   try {
-    const [levRes, typRes, logRes, quizRes, memRes, thkRes, cwRes, sudRes, mathRes, pixRes, ciphRes] = await Promise.all([
+    const [levRes, typRes, logRes, quizRes, memRes, thkRes, cwRes, sudRes, mathRes, pixRes, ciphRes, binRes, melRes, dbgRes] = await Promise.all([
       fetch(`${API}/api/levels`),
       fetch(`${API}/api/typing`),
       fetch(`${API}/api/logic`),
@@ -452,6 +521,9 @@ async function onLogin() {
       fetch(`${API}/api/math`),
       fetch(`${API}/api/pixel`),
       fetch(`${API}/api/cipher`),
+      fetch(`${API}/api/binary`),
+      fetch(`${API}/api/melody`),
+      fetch(`${API}/api/debug`),
     ]);
     state.levels = await levRes.json();
     state.typingLessons = await typRes.json();
@@ -464,7 +536,10 @@ async function onLogin() {
     state.mathProblems = await mathRes.json();
     state.pixelPuzzles = await pixRes.json();
     state.cipherPuzzles = await ciphRes.json();
-  } catch { state.levels = []; state.typingLessons = []; state.logicPuzzles = []; state.quizQuestions = []; state.memoryGames = []; state.thinkingExercises = []; state.crosswordPuzzles = []; state.sudokuPuzzles = []; state.mathProblems = []; state.pixelPuzzles = []; state.cipherPuzzles = []; }
+    state.binaryPuzzles = await binRes.json();
+    state.melodyGames = await melRes.json();
+    state.debugPuzzles = await dbgRes.json();
+  } catch { state.levels = []; state.typingLessons = []; state.logicPuzzles = []; state.quizQuestions = []; state.memoryGames = []; state.thinkingExercises = []; state.crosswordPuzzles = []; state.sudokuPuzzles = []; state.mathProblems = []; state.pixelPuzzles = []; state.cipherPuzzles = []; state.binaryPuzzles = []; state.melodyGames = []; state.debugPuzzles = []; }
 
   // Zapamiętaj wybrany awatar dla tego imienia
   const savedAvatar = localStorage.getItem(`kidcoder_avatar_${name}`);
@@ -485,6 +560,9 @@ async function onLogin() {
   renderMathList();
   renderPixelList();
   renderCipherList();
+  renderBinaryList();
+  renderMelodyList();
+  renderDebugList();
   renderDiploma();
   showScreen("levels");
 }
@@ -501,7 +579,10 @@ function updateStarDisplay() {
   const mathStars = Object.values(state.progress.math_stars || {}).reduce((a, b) => a + b, 0);
   const pixelStars = Object.values(state.progress.pixel_stars || {}).reduce((a, b) => a + b, 0);
   const cipherStars = Object.values(state.progress.cipher_stars || {}).reduce((a, b) => a + b, 0);
-  const total = codingStars + typingStars + logicStars + memoryStars + adventureStars + thinkingStars + crosswordStars + sudokuStars + mathStars + pixelStars + cipherStars;
+  const binaryStars = Object.values(state.progress.binary_stars || {}).reduce((a, b) => a + b, 0);
+  const melodyStars = Object.values(state.progress.melody_stars || {}).reduce((a, b) => a + b, 0);
+  const debugStars = Object.values(state.progress.debug_stars || {}).reduce((a, b) => a + b, 0);
+  const total = codingStars + typingStars + logicStars + memoryStars + adventureStars + thinkingStars + crosswordStars + sudokuStars + mathStars + pixelStars + cipherStars + binaryStars + melodyStars + debugStars;
   dom.totalStars.textContent = "⭐ " + total;
   updateXpBadge(total);
 }
@@ -637,6 +718,26 @@ function initEvents() {
   if (dom.btnNextCipher) dom.btnNextCipher.addEventListener("click", onNextCipher);
   if (dom.btnCipherToList) dom.btnCipherToList.addEventListener("click", () => { hideModal("cipher-success"); showScreen("levels"); renderCipherList(); });
 
+  // Binary events
+  if (dom.btnBackBinary) dom.btnBackBinary.addEventListener("click", () => { showScreen("levels"); renderBinaryList(); });
+  if (dom.btnBinaryHint) dom.btnBinaryHint.addEventListener("click", onBinaryHint);
+  if (dom.btnBinaryCheck) dom.btnBinaryCheck.addEventListener("click", checkBinary);
+  if (dom.btnNextBinary) dom.btnNextBinary.addEventListener("click", onNextBinary);
+  if (dom.btnBinaryToList) dom.btnBinaryToList.addEventListener("click", () => { hideModal("binary-success"); showScreen("levels"); renderBinaryList(); });
+
+  // Melody events
+  if (dom.btnBackMelody) dom.btnBackMelody.addEventListener("click", () => { showScreen("levels"); renderMelodyList(); });
+  if (dom.btnMelodyPlay) dom.btnMelodyPlay.addEventListener("click", playMelodySequence);
+  if (dom.btnMelodyHint) dom.btnMelodyHint.addEventListener("click", onMelodyHint);
+  if (dom.btnNextMelody) dom.btnNextMelody.addEventListener("click", onNextMelody);
+  if (dom.btnMelodyToList) dom.btnMelodyToList.addEventListener("click", () => { hideModal("melody-success"); showScreen("levels"); renderMelodyList(); });
+
+  // Debug events
+  if (dom.btnBackDebug) dom.btnBackDebug.addEventListener("click", () => { showScreen("levels"); renderDebugList(); });
+  if (dom.btnDebugHint) dom.btnDebugHint.addEventListener("click", onDebugHint);
+  if (dom.btnNextDebug) dom.btnNextDebug.addEventListener("click", onNextDebug);
+  if (dom.btnDebugToList) dom.btnDebugToList.addEventListener("click", () => { hideModal("debug-success"); showScreen("levels"); renderDebugList(); });
+
   // Avatar picker
   if (dom.avatarPicker) {
     dom.avatarPicker.querySelectorAll(".avatar-option").forEach(btn => {
@@ -678,7 +779,10 @@ function onLogout() {
                      sudoku_completed: [], sudoku_stars: {},
                      math_completed: [], math_stars: {},
                      pixel_completed: [], pixel_stars: {},
-                     cipher_completed: [], cipher_stars: {} };
+                     cipher_completed: [], cipher_stars: {},
+                     binary_completed: [], binary_stars: {},
+                     melody_completed: [], melody_stars: {},
+                     debug_completed: [], debug_stars: {} };
   state.levels = [];
   state.typingLessons = [];
   state.logicPuzzles = [];
@@ -701,6 +805,12 @@ function onLogout() {
   state.currentPixel = null;
   state.cipherPuzzles = [];
   state.currentCipher = null;
+  state.binaryPuzzles = [];
+  state.currentBinary = null;
+  state.melodyGames = [];
+  state.currentMelody = null;
+  state.debugPuzzles = [];
+  state.currentDebug = null;
   state.playerLevel = undefined;
   state.avatarTouched = false;
   state.program = [];

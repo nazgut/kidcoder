@@ -124,7 +124,13 @@ const Fun = (() => {
     if (btn) btn.textContent = muted ? "🔇" : "🔊";
   }
 
-  return { sound, confetti, celebrate, praiseBurst, toggleMute, syncMuteBtn, isMuted: () => muted };
+  // Pojedyncza nuta o zadanej częstotliwości (gra Melodia)
+  function note(freq, dur = 0.28, vol = 0.16) {
+    tone(freq, dur, { type: "sine", vol });
+    tone(freq * 2, dur, { type: "sine", vol: vol * 0.25 });
+  }
+
+  return { sound, note, confetti, celebrate, praiseBurst, toggleMute, syncMuteBtn, isMuted: () => muted };
 })();
 
 /* ---------- Globalne zaczepy ---------- */

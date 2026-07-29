@@ -78,6 +78,9 @@
     <button class="tab-btn" data-tab="sudoku"><span class="tab-icon">🔣</span><span class="tab-label">Sudoku</span></button>
     <button class="tab-btn" data-tab="pixel"><span class="tab-icon">🎨</span><span class="tab-label">Piksele</span></button>
     <button class="tab-btn" data-tab="cipher"><span class="tab-icon">🕵️</span><span class="tab-label">Szyfry</span></button>
+    <button class="tab-btn" data-tab="binary"><span class="tab-icon">💡</span><span class="tab-label">Bity</span></button>
+    <button class="tab-btn" data-tab="melody"><span class="tab-icon">🎵</span><span class="tab-label">Melodia</span></button>
+    <button class="tab-btn" data-tab="debug"><span class="tab-icon">🐞</span><span class="tab-label">Debugowanie</span></button>
     <button class="tab-btn" data-tab="diploma"><span class="tab-icon">🎓</span><span class="tab-label">Dyplom</span></button>
   </div>
   <div id="tab-coding" class="tab-content active">
@@ -174,6 +177,36 @@
         <p class="tab-hero-desc">Zostań agentem! Użyj klucza symboli, aby odszyfrować sekretne słowa 🔐</p>
       </div>
       <div id="cipher-grid" class="levels-grid cipher-levels-grid"></div>
+    </div>
+  </div>
+  <div id="tab-binary" class="tab-content">
+    <div class="levels-container binary-tab-container">
+      <div class="tab-hero binary-hero">
+        <div class="tab-hero-icon">💡</div>
+        <h2 class="tab-hero-title">Bity – tajemnica komputerów!</h2>
+        <p class="tab-hero-desc">Zapalaj żarówki o wartościach 1, 2, 4, 8, 16 i buduj liczby tak, jak robi to komputer! 🖥️</p>
+      </div>
+      <div id="binary-grid" class="levels-grid binary-levels-grid"></div>
+    </div>
+  </div>
+  <div id="tab-melody" class="tab-content">
+    <div class="levels-container melody-tab-container">
+      <div class="tab-hero melody-hero">
+        <div class="tab-hero-icon">🎵</div>
+        <h2 class="tab-hero-title">Melodia – posłuchaj i powtórz!</h2>
+        <p class="tab-hero-desc">Kolory grają muzykę! Zapamiętaj kolejność dźwięków i powtórz ją bezbłędnie 🎹</p>
+      </div>
+      <div id="melody-grid" class="levels-grid melody-levels-grid"></div>
+    </div>
+  </div>
+  <div id="tab-debug" class="tab-content">
+    <div class="levels-container debug-tab-container">
+      <div class="tab-hero debug-hero">
+        <div class="tab-hero-icon">🐞</div>
+        <h2 class="tab-hero-title">Debugowanie – znajdź błąd!</h2>
+        <p class="tab-hero-desc">Programy robota Bajtka mają błędy. Czytaj kroki uważnie i znajdź ten zepsuty! 🔍</p>
+      </div>
+      <div id="debug-grid" class="levels-grid debug-levels-grid"></div>
     </div>
   </div>
   <div id="tab-diploma" class="tab-content">
@@ -509,6 +542,111 @@
   </div>
 </div>
 
+<!-- EKRAN BITÓW -->
+<div id="screen-binary" class="screen">
+  <header class="top-bar binary-top-bar">
+    <button id="btn-back-binary" class="btn btn-back" title="Wróć">🔙 <span class="btn-label">Wróć</span></button>
+    <div class="level-info">
+      <span id="binary-title" class="level-title-bar">Bity</span>
+    </div>
+    <div class="top-bar-right">
+      <button id="btn-binary-hint" class="btn btn-action">💡 <span class="btn-label">Podpowiedź</span></button>
+      <button id="btn-binary-check" class="btn btn-action">✅ <span class="btn-label">Sprawdź</span></button>
+    </div>
+  </header>
+  <div class="logic-layout binary-game-bg">
+    <div class="logic-main binary-main">
+      <div class="binary-target-card">Zapal żarówki, żeby zrobić liczbę: <span id="binary-target" class="binary-target-number">?</span></div>
+      <div id="binary-bulbs" class="binary-bulbs"></div>
+      <div class="binary-sum-card">Twoje kropki razem: <span id="binary-sum" class="binary-sum-number">0</span></div>
+      <div id="binary-feedback" class="logic-feedback"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL SUKCESU BITÓW -->
+<div id="modal-binary-success" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-stars" id="binary-modal-stars"></div>
+    <h2>💡 Brawo!</h2>
+    <p id="binary-modal-message">Liczba zbudowana!</p>
+    <div class="modal-buttons">
+      <button id="btn-next-binary" class="btn btn-primary">Następna liczba ➡</button>
+      <button id="btn-binary-to-list" class="btn btn-secondary">📋 Lista zadań</button>
+    </div>
+  </div>
+</div>
+
+<!-- EKRAN MELODII -->
+<div id="screen-melody" class="screen">
+  <header class="top-bar melody-top-bar">
+    <button id="btn-back-melody" class="btn btn-back" title="Wróć">🔙 <span class="btn-label">Wróć</span></button>
+    <div class="level-info">
+      <span id="melody-title" class="level-title-bar">Melodia</span>
+    </div>
+    <div class="top-bar-right">
+      <button id="btn-melody-hint" class="btn btn-action">💡 <span class="btn-label">Podpowiedź</span></button>
+    </div>
+  </header>
+  <div class="logic-layout melody-game-bg">
+    <div class="logic-main melody-main">
+      <p id="melody-status" class="melody-status">Naciśnij ▶, żeby posłuchać melodii!</p>
+      <div id="melody-progress" class="melody-progress"></div>
+      <div id="melody-pads" class="melody-pads"></div>
+      <button id="btn-melody-play" class="btn btn-primary btn-melody-play">▶ Posłuchaj melodii</button>
+      <div id="melody-feedback" class="logic-feedback"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL SUKCESU MELODII -->
+<div id="modal-melody-success" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-stars" id="melody-modal-stars"></div>
+    <h2>🎵 Brawo!</h2>
+    <p id="melody-modal-message">Melodia powtórzona!</p>
+    <div class="modal-buttons">
+      <button id="btn-next-melody" class="btn btn-primary">Następna melodia ➡</button>
+      <button id="btn-melody-to-list" class="btn btn-secondary">📋 Lista melodii</button>
+    </div>
+  </div>
+</div>
+
+<!-- EKRAN DEBUGOWANIA -->
+<div id="screen-debug" class="screen">
+  <header class="top-bar debug-top-bar">
+    <button id="btn-back-debug" class="btn btn-back" title="Wróć">🔙 <span class="btn-label">Wróć</span></button>
+    <div class="level-info">
+      <span id="debug-title" class="level-title-bar">Debugowanie</span>
+    </div>
+    <div class="top-bar-right">
+      <button id="btn-debug-hint" class="btn btn-action">💡 <span class="btn-label">Podpowiedź</span></button>
+    </div>
+  </header>
+  <div class="logic-layout debug-game-bg">
+    <div class="logic-main debug-main">
+      <p id="debug-story" class="debug-story"></p>
+      <p class="debug-instruction">🔍 Kliknij krok, w którym ukrył się błąd:</p>
+      <div id="debug-steps" class="debug-steps"></div>
+      <div id="debug-feedback" class="logic-feedback"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL SUKCESU DEBUGOWANIA -->
+<div id="modal-debug-success" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-stars" id="debug-modal-stars"></div>
+    <h2>🐞 Błąd znaleziony!</h2>
+    <p id="debug-modal-message">Jesteś świetnym debuggerem!</p>
+    <p id="debug-explanation" class="logic-explanation"></p>
+    <div class="modal-buttons">
+      <button id="btn-next-debug" class="btn btn-primary">Następny program ➡</button>
+      <button id="btn-debug-to-list" class="btn btn-secondary">📋 Lista programów</button>
+    </div>
+  </div>
+</div>
+
 <!-- EKRAN MYŚLENIA KOMPUTEROWEGO -->
 <div id="screen-thinking" class="screen">
   <header class="top-bar thinking-top-bar">
@@ -692,6 +830,9 @@
 <script src="js/math.js"></script>
 <script src="js/pixel.js"></script>
 <script src="js/cipher.js"></script>
+<script src="js/binary.js"></script>
+<script src="js/melody.js"></script>
+<script src="js/debug.js"></script>
 <script src="js/diploma.js"></script>
 <script src="js/fun.js"></script>
 </body>
