@@ -23,5 +23,13 @@
     "1": 3
   },
   "sudoku_completed": [],
-  "sudoku_stars": {}
+  "sudoku_stars": {},
+  "cipher_completed": [
+    1,
+    2
+  ],
+  "cipher_stars": {
+    "1": 3,
+    "2": 3
+  }
 }

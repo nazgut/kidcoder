@@ -91,6 +91,7 @@ function pixelRowCode(rowStr) {
 function renderPixelBoard() {
   const p = state.currentPixel;
   dom.pixelBoard.innerHTML = "";
+  dom.pixelBoard.style.setProperty("--pixel-cols", p.size);
 
   p.grid.forEach((rowStr, y) => {
     const rowEl = document.createElement("div");
