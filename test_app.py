@@ -10,7 +10,7 @@ import unittest
 os.environ["KIDCODER_TEST"] = "1"
 
 from app import app, LEVELS, TYPING_LESSONS, LOGIC_PUZZLES, QUIZ_QUESTIONS, DATA_DIR
-from game_data import CROSSWORD_PUZZLES, PIXEL_PUZZLES, CIPHER_PUZZLES
+from game_data import CROSSWORD_PUZZLES, PIXEL_PUZZLES, CIPHER_PUZZLES, BINARY_PUZZLES, MELODY_GAMES, DEBUG_PUZZLES
 
 
 class TestBase(unittest.TestCase):
@@ -553,6 +553,169 @@ class TestCipherAPI(TestBase):
         data = res.get_json()
         self.assertIn(2, data["cipher_completed"])
         self.assertEqual(data["cipher_stars"]["2"], 2)
+
+
+# ============ BINARY API ============
+
+class TestBinaryAPI(TestBase):
+
+    def test_get_binary_puzzles(self):
+        res = self.client.get("/api/binary")
+        self.assertEqual(res.status_code, 200)
+        data = res.get_json()
+        self.assertIsInstance(data, list)
+        self.assertEqual(len(data), len(BINARY_PUZZLES))
+
+    def test_binary_summary_fields(self):
+        res = self.client.get("/api/binary")
+        for b in res.get_json():
+            self.assertIn("id", b)
+            self.assertIn("title", b)
+            self.assertIn("description", b)
+            self.assertIn("bits", b)
+
+    def test_get_single_binary_puzzle(self):
+        res = self.client.get("/api/binary/1")
+        self.assertEqual(res.status_code, 200)
+        data = res.get_json()
+        self.assertEqual(data["id"], 1)
+        self.assertIn("target", data)
+
+    def test_get_missing_binary_returns_404(self):
+        res = self.client.get("/api/binary/999")
+        self.assertEqual(res.status_code, 404)
+
+    def test_binary_unique_ids(self):
+        ids = [b["id"] for b in BINARY_PUZZLES]
+        self.assertEqual(len(ids), len(set(ids)))
+
+    def test_binary_target_achievable(self):
+        """Target must be buildable with the given bits: 0 < target < 2^bits."""
+        for b in BINARY_PUZZLES:
+            self.assertTrue(0 < b["target"] < 2 ** b["bits"],
+                            f"Binary {b['id']}: target {b['target']} impossible with {b['bits']} bits")
+
+    def test_binary_bits_range(self):
+        for b in BINARY_PUZZLES:
+            self.assertTrue(3 <= b["bits"] <= 5,
+                            f"Binary {b['id']}: bits should be 3-5 for kids")
+
+    def test_binary_hints_present(self):
+        for b in BINARY_PUZZLES:
+            self.assertIsInstance(b["hints"], list)
+            self.assertTrue(len(b["hints"]) > 0, f"Binary {b['id']}: needs hints")
+
+    def test_binary_progress_saving(self):
+        self.client.post("/api/progress/testbin", json={"binary_id": 1, "binary_stars": 3})
+        res = self.client.get("/api/progress/testbin")
+        data = res.get_json()
+        self.assertIn(1, data["binary_completed"])
+        self.assertEqual(data["binary_stars"]["1"], 3)
+
+
+# ============ MELODY API ============
+
+class TestMelodyAPI(TestBase):
+
+    def test_get_melody_games(self):
+        res = self.client.get("/api/melody")
+        self.assertEqual(res.status_code, 200)
+        data = res.get_json()
+        self.assertIsInstance(data, list)
+        self.assertEqual(len(data), len(MELODY_GAMES))
+
+    def test_get_single_melody_game(self):
+        res = self.client.get("/api/melody/1")
+        self.assertEqual(res.status_code, 200)
+        data = res.get_json()
+        self.assertEqual(data["id"], 1)
+        self.assertIn("pads", data)
+        self.assertIn("length", data)
+        self.assertIn("speed", data)
+
+    def test_get_missing_melody_returns_404(self):
+        res = self.client.get("/api/melody/999")
+        self.assertEqual(res.status_code, 404)
+
+    def test_melody_unique_ids(self):
+        ids = [m["id"] for m in MELODY_GAMES]
+        self.assertEqual(len(ids), len(set(ids)))
+
+    def test_melody_pads_range(self):
+        """The client only defines 4 pad colours."""
+        for m in MELODY_GAMES:
+            self.assertTrue(2 <= m["pads"] <= 4,
+                            f"Melody {m['id']}: pads must be 2-4")
+
+    def test_melody_sensible_difficulty(self):
+        for m in MELODY_GAMES:
+            self.assertTrue(2 <= m["length"] <= 12,
+                            f"Melody {m['id']}: length out of range")
+            self.assertTrue(200 <= m["speed"] <= 2000,
+                            f"Melody {m['id']}: speed out of range")
+
+    def test_melody_progress_saving(self):
+        self.client.post("/api/progress/testmel", json={"melody_id": 3, "melody_stars": 2})
+        res = self.client.get("/api/progress/testmel")
+        data = res.get_json()
+        self.assertIn(3, data["melody_completed"])
+        self.assertEqual(data["melody_stars"]["3"], 2)
+
+
+# ============ DEBUG API ============
+
+class TestDebugAPI(TestBase):
+
+    def test_get_debug_puzzles(self):
+        res = self.client.get("/api/debug")
+        self.assertEqual(res.status_code, 200)
+        data = res.get_json()
+        self.assertIsInstance(data, list)
+        self.assertEqual(len(data), len(DEBUG_PUZZLES))
+
+    def test_get_single_debug_puzzle(self):
+        res = self.client.get("/api/debug/1")
+        self.assertEqual(res.status_code, 200)
+        data = res.get_json()
+        self.assertEqual(data["id"], 1)
+        self.assertIn("steps", data)
+        self.assertIn("bug_index", data)
+
+    def test_get_missing_debug_returns_404(self):
+        res = self.client.get("/api/debug/999")
+        self.assertEqual(res.status_code, 404)
+
+    def test_debug_unique_ids(self):
+        ids = [d["id"] for d in DEBUG_PUZZLES]
+        self.assertEqual(len(ids), len(set(ids)))
+
+    def test_debug_required_fields(self):
+        required = ["id", "title", "description", "story", "steps", "bug_index", "fix", "explanation", "hints"]
+        for d in DEBUG_PUZZLES:
+            for field in required:
+                self.assertIn(field, d, f"Debug {d['id']} missing '{field}'")
+
+    def test_debug_bug_index_valid(self):
+        for d in DEBUG_PUZZLES:
+            self.assertTrue(0 <= d["bug_index"] < len(d["steps"]),
+                            f"Debug {d['id']}: bug_index out of range")
+
+    def test_debug_enough_steps(self):
+        for d in DEBUG_PUZZLES:
+            self.assertTrue(len(d["steps"]) >= 3,
+                            f"Debug {d['id']}: needs at least 3 steps")
+
+    def test_debug_fix_differs_from_bug(self):
+        for d in DEBUG_PUZZLES:
+            self.assertNotEqual(d["fix"], d["steps"][d["bug_index"]],
+                                f"Debug {d['id']}: fix must differ from the buggy step")
+
+    def test_debug_progress_saving(self):
+        self.client.post("/api/progress/testdbg", json={"debug_id": 2, "debug_stars": 1})
+        res = self.client.get("/api/progress/testdbg")
+        data = res.get_json()
+        self.assertIn(2, data["debug_completed"])
+        self.assertEqual(data["debug_stars"]["2"], 1)
 
 
 # ============ PROGRESS API ============

@@ -5,7 +5,7 @@ import os
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 
-from game_data import LEVELS, LOGIC_PUZZLES, TYPING_LESSONS, QUIZ_QUESTIONS, MEMORY_PAIRS, THINKING_EXERCISES, CROSSWORD_PUZZLES, SUDOKU_PUZZLES, MATH_PROBLEMS, PIXEL_PUZZLES, CIPHER_PUZZLES
+from game_data import LEVELS, LOGIC_PUZZLES, TYPING_LESSONS, QUIZ_QUESTIONS, MEMORY_PAIRS, THINKING_EXERCISES, CROSSWORD_PUZZLES, SUDOKU_PUZZLES, MATH_PROBLEMS, PIXEL_PUZZLES, CIPHER_PUZZLES, BINARY_PUZZLES, MELODY_GAMES, DEBUG_PUZZLES
 
 app = Flask(__name__, static_folder="static", static_url_path="")
 CORS(app)
@@ -38,7 +38,10 @@ def _load_progress(username: str) -> dict:
             "sudoku_completed": [], "sudoku_stars": {},
             "math_completed": [], "math_stars": {},
             "pixel_completed": [], "pixel_stars": {},
-            "cipher_completed": [], "cipher_stars": {}}
+            "cipher_completed": [], "cipher_stars": {},
+            "binary_completed": [], "binary_stars": {},
+            "melody_completed": [], "melody_stars": {},
+            "debug_completed": [], "debug_stars": {}}
 
 
 def _save_progress(username: str, data: dict):
@@ -213,6 +216,54 @@ def get_cipher_puzzle(puzzle_id):
     return jsonify({"error": "Nie znaleziono szyfru"}), 404
 
 
+@app.route("/api/binary", methods=["GET"])
+def get_binary_puzzles():
+    """Return binary puzzle summaries."""
+    summary = [{"id": b["id"], "title": b["title"], "description": b["description"], "bits": b["bits"]} for b in BINARY_PUZZLES]
+    return jsonify(summary)
+
+
+@app.route("/api/binary/<int:puzzle_id>", methods=["GET"])
+def get_binary_puzzle(puzzle_id):
+    """Return full binary puzzle data."""
+    for b in BINARY_PUZZLES:
+        if b["id"] == puzzle_id:
+            return jsonify(b)
+    return jsonify({"error": "Nie znaleziono zadania"}), 404
+
+
+@app.route("/api/melody", methods=["GET"])
+def get_melody_games():
+    """Return melody game summaries."""
+    summary = [{"id": m["id"], "title": m["title"], "description": m["description"]} for m in MELODY_GAMES]
+    return jsonify(summary)
+
+
+@app.route("/api/melody/<int:game_id>", methods=["GET"])
+def get_melody_game(game_id):
+    """Return full melody game data."""
+    for m in MELODY_GAMES:
+        if m["id"] == game_id:
+            return jsonify(m)
+    return jsonify({"error": "Nie znaleziono melodii"}), 404
+
+
+@app.route("/api/debug", methods=["GET"])
+def get_debug_puzzles():
+    """Return debug puzzle summaries."""
+    summary = [{"id": d["id"], "title": d["title"], "description": d["description"]} for d in DEBUG_PUZZLES]
+    return jsonify(summary)
+
+
+@app.route("/api/debug/<int:puzzle_id>", methods=["GET"])
+def get_debug_puzzle(puzzle_id):
+    """Return full debug puzzle data."""
+    for d in DEBUG_PUZZLES:
+        if d["id"] == puzzle_id:
+            return jsonify(d)
+    return jsonify({"error": "Nie znaleziono programu"}), 404
+
+
 @app.route("/api/thinking", methods=["GET"])
 def get_thinking_exercises():
     """Return thinking exercise summaries."""
@@ -267,135 +318,18 @@ def save_progress(username):
         prev_wpm = progress["typing_best_wpm"].get(str(typing_id), 0)
         progress["typing_best_wpm"][str(typing_id)] = max(prev_wpm, typing_wpm)
 
-    # Logic puzzles progress
-    logic_id = data.get("logic_id")
-    logic_stars = data.get("logic_stars", 1)
-    if logic_id is not None:
-        if "logic_completed" not in progress:
-            progress["logic_completed"] = []
-        if "logic_stars" not in progress:
-            progress["logic_stars"] = {}
-        if logic_id not in progress["logic_completed"]:
-            progress["logic_completed"].append(logic_id)
-        prev = progress["logic_stars"].get(str(logic_id), 0)
-        progress["logic_stars"][str(logic_id)] = max(prev, logic_stars)
-
-    # Quiz progress
-    quiz_id = data.get("quiz_id")
-    quiz_stars = data.get("quiz_stars", 1)
-    if quiz_id is not None:
-        if "quiz_completed" not in progress:
-            progress["quiz_completed"] = []
-        if "quiz_stars" not in progress:
-            progress["quiz_stars"] = {}
-        if quiz_id not in progress["quiz_completed"]:
-            progress["quiz_completed"].append(quiz_id)
-        prev = progress["quiz_stars"].get(str(quiz_id), 0)
-        progress["quiz_stars"][str(quiz_id)] = max(prev, quiz_stars)
-
-    # Memory game progress
-    memory_id = data.get("memory_id")
-    memory_stars = data.get("memory_stars", 1)
-    if memory_id is not None:
-        if "memory_completed" not in progress:
-            progress["memory_completed"] = []
-        if "memory_stars" not in progress:
-            progress["memory_stars"] = {}
-        if memory_id not in progress["memory_completed"]:
-            progress["memory_completed"].append(memory_id)
-        prev = progress["memory_stars"].get(str(memory_id), 0)
-        progress["memory_stars"][str(memory_id)] = max(prev, memory_stars)
-
-    # Adventure progress
-    adventure_id = data.get("adventure_id")
-    adventure_stars = data.get("adventure_stars", 1)
-    if adventure_id is not None:
-        if "adventure_completed" not in progress:
-            progress["adventure_completed"] = []
-        if "adventure_stars" not in progress:
-            progress["adventure_stars"] = {}
-        if adventure_id not in progress["adventure_completed"]:
-            progress["adventure_completed"].append(adventure_id)
-        prev = progress["adventure_stars"].get(str(adventure_id), 0)
-        progress["adventure_stars"][str(adventure_id)] = max(prev, adventure_stars)
-
-    # Thinking exercises progress
-    thinking_id = data.get("thinking_id")
-    thinking_stars = data.get("thinking_stars", 1)
-    if thinking_id is not None:
-        if "thinking_completed" not in progress:
-            progress["thinking_completed"] = []
-        if "thinking_stars" not in progress:
-            progress["thinking_stars"] = {}
-        if thinking_id not in progress["thinking_completed"]:
-            progress["thinking_completed"].append(thinking_id)
-        prev = progress["thinking_stars"].get(str(thinking_id), 0)
-        progress["thinking_stars"][str(thinking_id)] = max(prev, thinking_stars)
-
-    # Crossword progress
-    crossword_id = data.get("crossword_id")
-    crossword_stars = data.get("crossword_stars", 1)
-    if crossword_id is not None:
-        if "crossword_completed" not in progress:
-            progress["crossword_completed"] = []
-        if "crossword_stars" not in progress:
-            progress["crossword_stars"] = {}
-        if crossword_id not in progress["crossword_completed"]:
-            progress["crossword_completed"].append(crossword_id)
-        prev = progress["crossword_stars"].get(str(crossword_id), 0)
-        progress["crossword_stars"][str(crossword_id)] = max(prev, crossword_stars)
-
-    # Math progress
-    math_id = data.get("math_id")
-    math_stars = data.get("math_stars", 1)
-    if math_id is not None:
-        if "math_completed" not in progress:
-            progress["math_completed"] = []
-        if "math_stars" not in progress:
-            progress["math_stars"] = {}
-        if math_id not in progress["math_completed"]:
-            progress["math_completed"].append(math_id)
-        prev = progress["math_stars"].get(str(math_id), 0)
-        progress["math_stars"][str(math_id)] = max(prev, math_stars)
-
-    # Sudoku progress
-    sudoku_id = data.get("sudoku_id")
-    sudoku_stars = data.get("sudoku_stars", 1)
-    if sudoku_id is not None:
-        if "sudoku_completed" not in progress:
-            progress["sudoku_completed"] = []
-        if "sudoku_stars" not in progress:
-            progress["sudoku_stars"] = {}
-        if sudoku_id not in progress["sudoku_completed"]:
-            progress["sudoku_completed"].append(sudoku_id)
-        prev = progress["sudoku_stars"].get(str(sudoku_id), 0)
-        progress["sudoku_stars"][str(sudoku_id)] = max(prev, sudoku_stars)
-
-    # Pixel art progress
-    pixel_id = data.get("pixel_id")
-    pixel_stars = data.get("pixel_stars", 1)
-    if pixel_id is not None:
-        if "pixel_completed" not in progress:
-            progress["pixel_completed"] = []
-        if "pixel_stars" not in progress:
-            progress["pixel_stars"] = {}
-        if pixel_id not in progress["pixel_completed"]:
-            progress["pixel_completed"].append(pixel_id)
-        prev = progress["pixel_stars"].get(str(pixel_id), 0)
-        progress["pixel_stars"][str(pixel_id)] = max(prev, pixel_stars)
-
-    # Cipher progress
-    cipher_id = data.get("cipher_id")
-    cipher_stars = data.get("cipher_stars", 1)
-    if cipher_id is not None:
-        if "cipher_completed" not in progress:
-            progress["cipher_completed"] = []
-        if "cipher_stars" not in progress:
-            progress["cipher_stars"] = {}
-        if cipher_id not in progress["cipher_completed"]:
-            progress["cipher_completed"].append(cipher_id)
-        prev = progress["cipher_stars"].get(str(cipher_id), 0)
-        progress["cipher_stars"][str(cipher_id)] = max(prev, cipher_stars)
+    # All other games share the same progress shape: <key>_completed + <key>_stars
+    for key in ("logic", "quiz", "memory", "adventure", "thinking", "crossword",
+                "math", "sudoku", "pixel", "cipher", "binary", "melody", "debug"):
+        item_id = data.get(f"{key}_id")
+        item_stars = data.get(f"{key}_stars", 1)
+        if item_id is None:
+            continue
+        completed = progress.setdefault(f"{key}_completed", [])
+        stars_map = progress.setdefault(f"{key}_stars", {})
+        if item_id not in completed:
+            completed.append(item_id)
+        stars_map[str(item_id)] = max(stars_map.get(str(item_id), 0), item_stars)
 
     _save_progress(username, progress)
     return jsonify(progress)
