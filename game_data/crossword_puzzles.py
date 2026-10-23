@@ -121,3 +121,109 @@ CROSSWORD_PUZZLES = [
         ],
     },
 ]
+
+# ---------------------------------------------------------------------------
+# School contest "Autumn crossword" / "Herbstkreuzworträtsel"
+# (jesienna krzyżówka obrazkowa – picture crossword for grades I-III).
+# Clues are presented as pictures (emoji). Word counts follow the contest
+# rules: grade I -> 3-5 words, grade II -> 5-7 words, grade III -> 8-10 words.
+# IDs use separate ranges per language so progress tracking never collides
+# with the Polish puzzles (1-10).
+# ---------------------------------------------------------------------------
+
+CROSSWORD_PUZZLES_EN = [
+    {
+        "id": 101,
+        "grade": "Klasa I (3-5 haseł)",
+        "title": "Autumn Leaves",
+        "description": "Look at the pictures and find the hidden word!",
+        "secret": "LEAF",
+        "rows": [
+            {"word": "APPLE", "clue": "a round fruit that falls from trees in autumn", "emoji": "🍎", "highlight": 3},
+            {"word": "TREE", "clue": "its leaves turn yellow and red in autumn", "emoji": "🌳", "highlight": 2},
+            {"word": "PEAR", "clue": "a sweet green fruit you pick in autumn", "emoji": "🍐", "highlight": 2},
+            {"word": "FOG", "clue": "grey mist on cold autumn mornings", "emoji": "🌫️", "highlight": 0},
+        ],
+    },
+    {
+        "id": 102,
+        "grade": "Klasa II (5-7 haseł)",
+        "title": "Rainy Days",
+        "description": "Solve the picture clues and read the secret word!",
+        "secret": "AUTUMN",
+        "rows": [
+            {"word": "RAIN", "clue": "water falling from grey clouds", "emoji": "🌧️", "highlight": 1},
+            {"word": "CLOUD", "clue": "white or grey, it floats in the sky", "emoji": "☁️", "highlight": 3},
+            {"word": "CHESTNUT", "clue": "a shiny brown nut you collect in the park", "emoji": "🌰", "highlight": 4},
+            {"word": "SUN", "clue": "it shines, but not for long in autumn", "emoji": "☀️", "highlight": 1},
+            {"word": "MUSHROOM", "clue": "it grows in the forest after the rain", "emoji": "🍄", "highlight": 0},
+            {"word": "WIND", "clue": "it blows the leaves off the trees", "emoji": "💨", "highlight": 2},
+        ],
+    },
+    {
+        "id": 103,
+        "grade": "Klasa III (8-10 haseł)",
+        "title": "Autumn Walk",
+        "description": "Eight picture clues hide a very orange word!",
+        "secret": "PUMPKINS",
+        "rows": [
+            {"word": "PEAR", "clue": "a sweet autumn fruit, green or yellow", "emoji": "🍐", "highlight": 0},
+            {"word": "CLOUDY", "clue": "when the sky is full of clouds", "emoji": "☁️", "highlight": 3},
+            {"word": "WARM", "clue": "a hot tea keeps you like this", "emoji": "🍵", "highlight": 3},
+            {"word": "APPLE", "clue": "a crunchy red or green fruit", "emoji": "🍎", "highlight": 1},
+            {"word": "JACKET", "clue": "you wear it outside when it gets cold", "emoji": "🧥", "highlight": 3},
+            {"word": "SPIDER", "clue": "it weaves a web in the corner", "emoji": "🕷️", "highlight": 2},
+            {"word": "ACORN", "clue": "a little oak nut loved by squirrels", "emoji": "🌰", "highlight": 4},
+            {"word": "SCARF", "clue": "you wrap it around your neck", "emoji": "🧣", "highlight": 0},
+        ],
+    },
+]
+
+CROSSWORD_PUZZLES_DE = [
+    {
+        "id": 201,
+        "grade": "Klasa I (3-5 haseł)",
+        "title": "Im Herbstwald",
+        "description": "Schau dir die Bilder an und finde das Lösungswort!",
+        "secret": "BAUM",
+        "rows": [
+            {"word": "BLATT", "clue": "es fällt im Herbst vom Baum", "emoji": "🍂", "highlight": 0},
+            {"word": "APFEL", "clue": "eine rote oder grüne Frucht", "emoji": "🍎", "highlight": 0},
+            {"word": "NUSS", "clue": "das Eichhörnchen sammelt sie gern", "emoji": "🌰", "highlight": 1},
+            {"word": "MAIS", "clue": "gelb und lecker, wird im Herbst geerntet", "emoji": "🌽", "highlight": 0},
+        ],
+    },
+    {
+        "id": 202,
+        "grade": "Klasa II (5-7 haseł)",
+        "title": "Bunte Blätter",
+        "description": "Löse die Bilderrätsel und lies das Lösungswort!",
+        "secret": "HERBST",
+        "rows": [
+            {"word": "HEXE", "clue": "sie fliegt an Halloween auf dem Besen", "emoji": "🧙", "highlight": 0},
+            {"word": "REGEN", "clue": "er fällt aus grauen Wolken", "emoji": "🌧️", "highlight": 1},
+            {"word": "BIRNE", "clue": "eine süße Frucht, im Herbst reif", "emoji": "🍐", "highlight": 2},
+            {"word": "BUNT", "clue": "so sind die Blätter im Herbst", "emoji": "🎨", "highlight": 0},
+            {"word": "SONNE", "clue": "sie scheint am Himmel", "emoji": "☀️", "highlight": 0},
+            {"word": "WETTER", "clue": "im Herbst oft kalt und windig", "emoji": "🌦️", "highlight": 2},
+        ],
+    },
+    {
+        "id": 203,
+        "grade": "Klasa III (8-10 haseł)",
+        "title": "Herbstspaziergang",
+        "description": "Neun Bilderrätsel verstecken den ersten Herbstmonat!",
+        "secret": "SEPTEMBER",
+        "rows": [
+            {"word": "SONNE", "clue": "sie scheint am Himmel", "emoji": "☀️", "highlight": 0},
+            {"word": "REGEN", "clue": "er fällt aus grauen Wolken", "emoji": "🌧️", "highlight": 1},
+            {"word": "PILZ", "clue": "er wächst im Wald nach dem Regen", "emoji": "🍄", "highlight": 0},
+            {"word": "TANNE", "clue": "ein Nadelbaum, der immer grün bleibt", "emoji": "🌲", "highlight": 0},
+            {"word": "NEBEL", "clue": "grauer Dunst am Herbstmorgen", "emoji": "🌫️", "highlight": 1},
+            {"word": "MAUS", "clue": "ein kleines Tier mit langem Schwanz", "emoji": "🐭", "highlight": 0},
+            {"word": "BIRNE", "clue": "eine süße Frucht, im Herbst reif", "emoji": "🍐", "highlight": 0},
+            {"word": "HEXE", "clue": "sie fliegt an Halloween auf dem Besen", "emoji": "🧙", "highlight": 1},
+            {"word": "RAUPE", "clue": "sie krabbelt und wird ein Schmetterling", "emoji": "🐛", "highlight": 0},
+        ],
+    },
+]

@@ -5,13 +5,21 @@ import os
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 
-from game_data import LEVELS, LOGIC_PUZZLES, TYPING_LESSONS, QUIZ_QUESTIONS, MEMORY_PAIRS, THINKING_EXERCISES, CROSSWORD_PUZZLES, SUDOKU_PUZZLES, MATH_PROBLEMS, PIXEL_PUZZLES, CIPHER_PUZZLES, BINARY_PUZZLES, MELODY_GAMES, DEBUG_PUZZLES
+from game_data import LEVELS, LOGIC_PUZZLES, TYPING_LESSONS, QUIZ_QUESTIONS, MEMORY_PAIRS, THINKING_EXERCISES, CROSSWORD_PUZZLES, CROSSWORD_PUZZLES_EN, CROSSWORD_PUZZLES_DE, SUDOKU_PUZZLES, MATH_PROBLEMS, PIXEL_PUZZLES, CIPHER_PUZZLES, BINARY_PUZZLES, MELODY_GAMES, DEBUG_PUZZLES
 
 app = Flask(__name__, static_folder="static", static_url_path="")
 CORS(app)
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 os.makedirs(DATA_DIR, exist_ok=True)
+
+# Crossword puzzles grouped by language (pl = Polish, en = English "Autumn
+# crossword", de = German "Herbstkreuzworträtsel" – school contest editions).
+CROSSWORD_PUZZLES_BY_LANG = {
+    "pl": CROSSWORD_PUZZLES,
+    "en": CROSSWORD_PUZZLES_EN,
+    "de": CROSSWORD_PUZZLES_DE,
+}
 
 # ---------- helpers ----------
 
@@ -138,15 +146,29 @@ def get_memory_pair(memory_id):
 
 @app.route("/api/crossword", methods=["GET"])
 def get_crossword_puzzles():
-    """Return crossword puzzle summaries."""
-    summary = [{"id": c["id"], "title": c["title"], "description": c["description"]} for c in CROSSWORD_PUZZLES]
+    """Return crossword puzzle summaries (optional ?lang=pl|en|de, default pl)."""
+    lang = request.args.get("lang", "pl")
+    puzzles = CROSSWORD_PUZZLES_BY_LANG.get(lang, CROSSWORD_PUZZLES)
+    summary = [{"id": c["id"], "title": c["title"], "description": c["description"]} for c in puzzles]
     return jsonify(summary)
 
 
 @app.route("/api/crossword/<int:puzzle_id>", methods=["GET"])
 def get_crossword_puzzle(puzzle_id):
-    """Return full crossword puzzle data."""
+    """Return full crossword puzzle data (Polish puzzles, kept for compatibility)."""
     for c in CROSSWORD_PUZZLES:
+        if c["id"] == puzzle_id:
+            return jsonify(c)
+    return jsonify({"error": "Nie znaleziono krzyżówki"}), 404
+
+
+@app.route("/api/crossword/<lang>/<int:puzzle_id>", methods=["GET"])
+def get_crossword_puzzle_lang(lang, puzzle_id):
+    """Return full crossword puzzle data for the given language (pl|en|de)."""
+    puzzles = CROSSWORD_PUZZLES_BY_LANG.get(lang)
+    if puzzles is None:
+        return jsonify({"error": "Nieznany język krzyżówki"}), 404
+    for c in puzzles:
         if c["id"] == puzzle_id:
             return jsonify(c)
     return jsonify({"error": "Nie znaleziono krzyżówki"}), 404

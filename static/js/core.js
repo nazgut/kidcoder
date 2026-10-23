@@ -78,6 +78,9 @@ const state = {
   adventureFrame: null,
   // crossword state
   crosswordPuzzles: [],
+  crosswordPuzzlesEn: [],
+  crosswordPuzzlesDe: [],
+  crosswordLang: "pl",
   currentCrossword: null,
   crosswordAttempts: 0,
   crosswordSolved: false,
@@ -334,6 +337,7 @@ function initDom() {
 
   // Crossword DOM refs
   dom.crosswordGrid         = $("#crossword-grid");
+  dom.crosswordSubtabs      = $("#crossword-subtabs");
   dom.btnBackCrossword      = $("#btn-back-crossword");
   dom.crosswordTitle        = $("#crossword-title");
   dom.crosswordDesc         = $("#crossword-desc");
@@ -509,7 +513,7 @@ async function onLogin() {
   }
 
   try {
-    const [levRes, typRes, logRes, quizRes, memRes, thkRes, cwRes, sudRes, mathRes, pixRes, ciphRes, binRes, melRes, dbgRes] = await Promise.all([
+    const [levRes, typRes, logRes, quizRes, memRes, thkRes, cwRes, cwEnRes, cwDeRes, sudRes, mathRes, pixRes, ciphRes, binRes, melRes, dbgRes] = await Promise.all([
       fetch(`${API}/api/levels`),
       fetch(`${API}/api/typing`),
       fetch(`${API}/api/logic`),
@@ -517,6 +521,8 @@ async function onLogin() {
       fetch(`${API}/api/memory`),
       fetch(`${API}/api/thinking`),
       fetch(`${API}/api/crossword`),
+      fetch(`${API}/api/crossword?lang=en`),
+      fetch(`${API}/api/crossword?lang=de`),
       fetch(`${API}/api/sudoku`),
       fetch(`${API}/api/math`),
       fetch(`${API}/api/pixel`),
@@ -532,6 +538,8 @@ async function onLogin() {
     state.memoryGames = await memRes.json();
     state.thinkingExercises = await thkRes.json();
     state.crosswordPuzzles = await cwRes.json();
+    state.crosswordPuzzlesEn = await cwEnRes.json();
+    state.crosswordPuzzlesDe = await cwDeRes.json();
     state.sudokuPuzzles = await sudRes.json();
     state.mathProblems = await mathRes.json();
     state.pixelPuzzles = await pixRes.json();
@@ -539,7 +547,7 @@ async function onLogin() {
     state.binaryPuzzles = await binRes.json();
     state.melodyGames = await melRes.json();
     state.debugPuzzles = await dbgRes.json();
-  } catch { state.levels = []; state.typingLessons = []; state.logicPuzzles = []; state.quizQuestions = []; state.memoryGames = []; state.thinkingExercises = []; state.crosswordPuzzles = []; state.sudokuPuzzles = []; state.mathProblems = []; state.pixelPuzzles = []; state.cipherPuzzles = []; state.binaryPuzzles = []; state.melodyGames = []; state.debugPuzzles = []; }
+  } catch { state.levels = []; state.typingLessons = []; state.logicPuzzles = []; state.quizQuestions = []; state.memoryGames = []; state.thinkingExercises = []; state.crosswordPuzzles = []; state.crosswordPuzzlesEn = []; state.crosswordPuzzlesDe = []; state.sudokuPuzzles = []; state.mathProblems = []; state.pixelPuzzles = []; state.cipherPuzzles = []; state.binaryPuzzles = []; state.melodyGames = []; state.debugPuzzles = []; }
 
   // Zapamiętaj wybrany awatar dla tego imienia
   const savedAvatar = localStorage.getItem(`kidcoder_avatar_${name}`);
@@ -692,6 +700,12 @@ function initEvents() {
   if (dom.btnCrosswordCheck) dom.btnCrosswordCheck.addEventListener("click", checkCrossword);
   if (dom.btnNextCrossword) dom.btnNextCrossword.addEventListener("click", onNextCrossword);
   if (dom.btnCrosswordToList) dom.btnCrosswordToList.addEventListener("click", () => { hideModal("crossword-success"); showScreen("levels"); renderCrosswordList(); });
+  if (dom.crosswordSubtabs) dom.crosswordSubtabs.addEventListener("click", e => {
+    const btn = e.target.closest(".crossword-subtab");
+    if (!btn || btn.dataset.lang === state.crosswordLang) return;
+    state.crosswordLang = btn.dataset.lang;
+    renderCrosswordList();
+  });
 
   // Sudoku events
   if (dom.btnBackSudoku) dom.btnBackSudoku.addEventListener("click", () => { showScreen("levels"); renderSudokuList(); });
@@ -790,6 +804,9 @@ function onLogout() {
   state.memoryGames = [];
   state.thinkingExercises = [];
   state.crosswordPuzzles = [];
+  state.crosswordPuzzlesEn = [];
+  state.crosswordPuzzlesDe = [];
+  state.crosswordLang = "pl";
   state.sudokuPuzzles = [];
   state.mathProblems = [];
   state.currentLevel = null;

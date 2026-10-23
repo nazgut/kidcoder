@@ -1,22 +1,45 @@
 /* ==========================================================
    KidCoder – Crossword puzzle module ("hasło" format)
+   Sub-tabs: 🇵🇱 Polski, 🇬🇧 English ("Autumn crossword"),
+   🇩🇪 Deutsch ("Herbstkreuzworträtsel") – school contest
+   editions with picture (emoji) clues and grade bands.
    ========================================================== */
+
+const CROSSWORD_LANG_META = {
+  pl: { lettersLabel: "liter", secretLabel: "Hasło:" },
+  en: { lettersLabel: "letters", secretLabel: "Secret word:" },
+  de: { lettersLabel: "Buchstaben", secretLabel: "Lösungswort:" },
+};
+
+function getCrosswordPuzzlesForLang(lang) {
+  if (lang === "en") return state.crosswordPuzzlesEn || [];
+  if (lang === "de") return state.crosswordPuzzlesDe || [];
+  return state.crosswordPuzzles || [];
+}
 
 function renderCrosswordList() {
   const grid = dom.crosswordGrid;
   if (!grid) return;
   grid.innerHTML = "";
-  const puzzles = state.crosswordPuzzles || [];
+  const lang = state.crosswordLang || "pl";
+  const puzzles = getCrosswordPuzzlesForLang(lang);
   const completed = state.progress.crossword_completed || [];
   const starsMap = state.progress.crossword_stars || {};
 
-  puzzles.forEach(p => {
+  if (dom.crosswordSubtabs) {
+    dom.crosswordSubtabs.querySelectorAll(".crossword-subtab").forEach(b => {
+      b.classList.toggle("active", b.dataset.lang === lang);
+    });
+  }
+
+  puzzles.forEach((p, idx) => {
     const done = completed.includes(p.id);
     const s = starsMap[String(p.id)] || 0;
     const card = document.createElement("div");
     card.className = "level-card" + (done ? " completed" : "");
     card.innerHTML = `
-      <div class="level-number">${p.id}</div>
+      <div class="level-number">${idx + 1}</div>
+      ${p.grade ? `<span class="crossword-grade">${esc(p.grade)}</span>` : ""}
       <div class="level-title">${esc(p.title)}</div>
       <div class="level-desc-mini">${esc(p.description)}</div>
       <div class="level-stars">${done ? starStr(s, 3) : "☆☆☆"}</div>`;
@@ -27,7 +50,9 @@ function renderCrosswordList() {
 
 async function loadCrossword(id) {
   try {
-    const res = await fetch(`${API}/api/crossword/${id}`);
+    const lang = state.crosswordLang || "pl";
+    const url = lang === "pl" ? `${API}/api/crossword/${id}` : `${API}/api/crossword/${lang}/${id}`;
+    const res = await fetch(url);
     if (!res.ok) return;
     const data = await res.json();
     state.currentCrossword = data;
@@ -59,12 +84,14 @@ function buildCrosswordBoard(data) {
   state.crosswordInputs = [];
 
   // Build clues
+  const langMeta = CROSSWORD_LANG_META[state.crosswordLang] || CROSSWORD_LANG_META.pl;
   const cluesEl = dom.crosswordClues;
   cluesEl.innerHTML = "";
   rows.forEach((r, i) => {
     const div = document.createElement("div");
     div.className = "crossword-clue";
-    div.innerHTML = `<strong>${i + 1}.</strong> ${esc(r.clue)} <small>(${r.word.length} liter)</small>`;
+    const emoji = r.emoji ? `<span class="cw-emoji">${r.emoji}</span>` : "";
+    div.innerHTML = `<strong>${i + 1}.</strong> ${emoji}${esc(r.clue)} <small>(${r.word.length} ${langMeta.lettersLabel})</small>`;
     cluesEl.appendChild(div);
   });
 
@@ -118,7 +145,7 @@ function buildCrosswordBoard(data) {
   // Secret word display
   const secretEl = document.createElement("div");
   secretEl.className = "cw-secret-display";
-  secretEl.innerHTML = `<span class="cw-secret-label">Hasło:</span> <span id="cw-secret-letters" class="cw-secret-letters">${"_ ".repeat(secret.length).trim()}</span>`;
+  secretEl.innerHTML = `<span class="cw-secret-label">${langMeta.secretLabel}</span> <span id="cw-secret-letters" class="cw-secret-letters">${"_ ".repeat(secret.length).trim()}</span>`;
   board.appendChild(secretEl);
 }
 
@@ -137,7 +164,8 @@ function updateSecretDisplay() {
 
 function onCrosswordInput(e) {
   const inp = e.target;
-  const v = inp.value.toUpperCase().replace(/[^A-ZĄĆĘŁŃÓŚŹŻ]/g, "");
+  // Allow Latin letters plus Polish and German diacritics
+  const v = inp.value.toUpperCase().replace(/[^A-ZĄĆĘŁŃÓŚŹŻÄÖÜ]/g, "");
   inp.value = v.charAt(0);
   if (inp.value) {
     // Move to next input in same row, or first input in next row
@@ -245,7 +273,7 @@ async function saveCrosswordProgress(id, stars) {
 
 function onNextCrossword() {
   hideModal("crossword-success");
-  const puzzles = state.crosswordPuzzles || [];
+  const puzzles = getCrosswordPuzzlesForLang(state.crosswordLang || "pl");
   const idx = puzzles.findIndex(p => p.id === state.currentCrossword.id);
   if (idx >= 0 && idx < puzzles.length - 1) {
     loadCrossword(puzzles[idx + 1].id);

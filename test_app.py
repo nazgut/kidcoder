@@ -10,7 +10,7 @@ import unittest
 os.environ["KIDCODER_TEST"] = "1"
 
 from app import app, LEVELS, TYPING_LESSONS, LOGIC_PUZZLES, QUIZ_QUESTIONS, DATA_DIR
-from game_data import CROSSWORD_PUZZLES, PIXEL_PUZZLES, CIPHER_PUZZLES, BINARY_PUZZLES, MELODY_GAMES, DEBUG_PUZZLES
+from game_data import CROSSWORD_PUZZLES, CROSSWORD_PUZZLES_EN, CROSSWORD_PUZZLES_DE, PIXEL_PUZZLES, CIPHER_PUZZLES, BINARY_PUZZLES, MELODY_GAMES, DEBUG_PUZZLES
 
 
 class TestBase(unittest.TestCase):
@@ -410,6 +410,104 @@ class TestCrosswordAPI(TestBase):
         data = res.get_json()
         self.assertIn(1, data["crossword_completed"])
         self.assertEqual(data["crossword_stars"]["1"], 3)
+
+
+# ============ CROSSWORD LANGUAGE SUB-TABS (Autumn crossword / Herbstkreuzworträtsel) ============
+
+class TestCrosswordLanguagesAPI(TestBase):
+    """English and German contest crosswords served via ?lang= and /<lang>/<id>."""
+
+    def test_lang_lists(self):
+        res_pl = self.client.get("/api/crossword")
+        res_en = self.client.get("/api/crossword?lang=en")
+        res_de = self.client.get("/api/crossword?lang=de")
+        self.assertEqual(res_pl.status_code, 200)
+        self.assertEqual(res_en.status_code, 200)
+        self.assertEqual(res_de.status_code, 200)
+        self.assertEqual(len(res_pl.get_json()), len(CROSSWORD_PUZZLES))
+        self.assertEqual(len(res_en.get_json()), len(CROSSWORD_PUZZLES_EN))
+        self.assertEqual(len(res_de.get_json()), len(CROSSWORD_PUZZLES_DE))
+
+    def test_default_lang_is_polish(self):
+        res_default = self.client.get("/api/crossword")
+        res_pl = self.client.get("/api/crossword?lang=pl")
+        self.assertEqual(res_default.get_json(), res_pl.get_json())
+
+    def test_get_single_crossword_by_lang(self):
+        res = self.client.get("/api/crossword/en/101")
+        self.assertEqual(res.status_code, 200)
+        data = res.get_json()
+        self.assertEqual(data["id"], 101)
+        self.assertIn("rows", data)
+        self.assertIn("secret", data)
+        res = self.client.get("/api/crossword/de/201")
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.get_json()["id"], 201)
+
+    def test_lang_id_isolation(self):
+        """Polish id must not resolve under a foreign language and vice versa."""
+        self.assertEqual(self.client.get("/api/crossword/en/1").status_code, 404)
+        self.assertEqual(self.client.get("/api/crossword/de/101").status_code, 404)
+        self.assertEqual(self.client.get("/api/crossword/101").status_code, 404)
+
+    def test_unknown_lang_returns_404(self):
+        res = self.client.get("/api/crossword/fr/1")
+        self.assertEqual(res.status_code, 404)
+
+    def test_unknown_lang_list_falls_back_to_polish(self):
+        res = self.client.get("/api/crossword?lang=fr")
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(len(res.get_json()), len(CROSSWORD_PUZZLES))
+
+    def test_lang_unique_ids_across_languages(self):
+        """Progress is keyed by crossword id, so ids must never collide."""
+        all_ids = ([c["id"] for c in CROSSWORD_PUZZLES]
+                   + [c["id"] for c in CROSSWORD_PUZZLES_EN]
+                   + [c["id"] for c in CROSSWORD_PUZZLES_DE])
+        self.assertEqual(len(all_ids), len(set(all_ids)))
+
+    def test_lang_secret_matches_highlights(self):
+        for lang_puzzles in (CROSSWORD_PUZZLES_EN, CROSSWORD_PUZZLES_DE):
+            for c in lang_puzzles:
+                secret = c["secret"].upper()
+                self.assertEqual(len(secret), len(c["rows"]),
+                                 f"Crossword {c['id']}: secret length must match row count")
+                for i, r in enumerate(c["rows"]):
+                    self.assertTrue(0 <= r["highlight"] < len(r["word"]),
+                                    f"Crossword {c['id']} row {i}: highlight out of range")
+                    letter = r["word"][r["highlight"]].upper()
+                    self.assertEqual(letter, secret[i],
+                                     f"Crossword {c['id']} row {i}: '{letter}' != secret[{i}] '{secret[i]}'")
+
+    def test_lang_picture_clues(self):
+        """Contest rule: hasła prezentowane w postaci obrazków (picture clues)."""
+        for lang_puzzles in (CROSSWORD_PUZZLES_EN, CROSSWORD_PUZZLES_DE):
+            for c in lang_puzzles:
+                for i, r in enumerate(c["rows"]):
+                    self.assertIn("emoji", r, f"Crossword {c['id']} row {i}: missing picture clue")
+                    self.assertTrue(r["emoji"], f"Crossword {c['id']} row {i}: empty picture clue")
+
+    def test_lang_word_counts_match_grade_bands(self):
+        """Contest rules: grade I -> 3-5 words, grade II -> 5-7, grade III -> 8-10."""
+        for lang_puzzles in (CROSSWORD_PUZZLES_EN, CROSSWORD_PUZZLES_DE):
+            for c in lang_puzzles:
+                n = len(c["rows"])
+                self.assertIn("grade", c, f"Crossword {c['id']}: missing grade band")
+                if c["grade"].startswith("Klasa III"):
+                    self.assertTrue(8 <= n <= 10, f"Crossword {c['id']}: {n} words, grade III needs 8-10")
+                elif c["grade"].startswith("Klasa II"):
+                    self.assertTrue(5 <= n <= 7, f"Crossword {c['id']}: {n} words, grade II needs 5-7")
+                elif c["grade"].startswith("Klasa I"):
+                    self.assertTrue(3 <= n <= 5, f"Crossword {c['id']}: {n} words, grade I needs 3-5")
+                else:
+                    self.fail(f"Crossword {c['id']}: unknown grade '{c['grade']}'")
+
+    def test_lang_progress_saving(self):
+        self.client.post("/api/progress/testcwen", json={"crossword_id": 101, "crossword_stars": 2})
+        res = self.client.get("/api/progress/testcwen")
+        data = res.get_json()
+        self.assertIn(101, data["crossword_completed"])
+        self.assertEqual(data["crossword_stars"]["101"], 2)
 
 
 # ============ PIXEL ART API ============

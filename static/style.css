@@ -2627,6 +2627,52 @@ button, [role="button"] {
   font-weight: 600;
 }
 
+/* Language sub-tabs (Polski / English / Deutsch) */
+.crossword-subtabs {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+.crossword-subtab {
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 800;
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: 2px solid #FFE0B2;
+  background: var(--white);
+  color: #8D6E63;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  transition: transform 0.15s, box-shadow 0.15s, background 0.15s, color 0.15s;
+}
+.crossword-subtab:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(243,156,18,0.25);
+}
+.crossword-subtab.active {
+  background: linear-gradient(135deg, #F39C12, #FDCB6E);
+  border-color: #F39C12;
+  color: var(--white);
+}
+.crossword-clue .cw-emoji {
+  font-size: 1.4rem;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+.crossword-grade {
+  display: inline-block;
+  margin-bottom: 4px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #B8860B;
+  background: #FFF3D6;
+  border-radius: 999px;
+  padding: 2px 10px;
+}
+
 /* Board */
 .crossword-board {
   display: flex;
